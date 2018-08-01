@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<PluginConfig>
+
+    <Field id="infoLabel1" type="label"> <Label>homeAway  plugin  Developed by Karl Wachs</Label>  </Field>
+
+    <Field id="infoLabel01" type="label"> <Label>== General parameters:... </Label>  </Field>
+
+            <Field     id="eventUpdateWait" type="menu" defaultValue="5" >
+                <Label>How often to check for Event changes:</Label>
+                <List class="self" filter="short" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field     id="eventVariablePrefix" type="textfield" defaultValue="EVENTS" >
+                <Label>Prefix for counter variables names XXX...._away  XXX...._home (blank = do NOT use):</Label>
+            </Field>
+
+            <Field     id="autoAddDevices" type="menu" defaultValue="ON" >
+                <Label>Add qualified devices to known ON/off devices automatically:</Label>
+                <List>
+                    <Option value="ON" >ON </Option>
+                    <Option value="off">off</Option>
+                </List>
+            </Field>
+    <Field id="simpleSeparator02" type="separator"/>
+
+    <Field id="infoLabel226" type="label"> <Label>== Debug:... </Label>  </Field>
+
+    <Field    id="debugSETUP"       type="checkbox"  defaultValue="false"   > <Label>... (1) SETUP..:</Label>  </Field>
+    <Field    id="debugRECEIVE"     type="checkbox"  defaultValue="false"   > <Label>... (2) receive events:</Label>  </Field>
+    <Field    id="debugEVENTS"      type="checkbox"  defaultValue="false"   > <Label>... (3) process EVENTS:</Label>  </Field>
+    <Field    id="debugDOORS"       type="checkbox"  defaultValue="false"   > <Label>... (4) DOOR devices:</Label>  </Field>
+    <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (10) all of the above = everything:</Label>  </Field>
+    <Field    id="logFilePath"      type="menu"      defaultValue="no"      > <Label> send logs to ..:</Label>
+        <List>
+            <Option value="no"       > no special events logfile, std indigo logfile</Option>
+            <Option value="user"     > ~/indigo/events/homeAway.log                    </Option>
+            <Option value="indigo"   > .. Perceptive Automation/Indigo 7/Logs/com.karlwachs.events/homeAway.log </Option>
+        </List>
+    </Field>
+
+
+</PluginConfig>

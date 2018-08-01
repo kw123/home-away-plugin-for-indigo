@@ -1,0 +1,211 @@
+<MenuItems>
+
+    <MenuItem id="print">
+        <Name>Print/ HELP info</Name>
+        <ConfigUI>
+
+                <Field id="printEVENTS" type="button"> 
+                    <Label>Print   Events</Label> 
+                    <Title>CLICK</Title><CallbackMethod>printEVENTS</CallbackMethod>
+                </Field>
+                <Field id="printDEVICES" type="button"> 
+                    <Label>Print   DEVICES</Label> 
+                    <Title>CLICK</Title><CallbackMethod>printDEVICES</CallbackMethod>
+                </Field>
+                <Field id="printDOORS" type="button"> 
+                    <Label>Print   DOORS</Label> 
+                    <Title>CLICK</Title><CallbackMethod>printDOORS</CallbackMethod>
+                </Field>
+                <Field id="printHELP" type="button"> 
+                    <Label>Print   HELP </Label> 
+                    <Title>CLICK</Title><CallbackMethod>printHELP</CallbackMethod>
+                </Field>
+        </ConfigUI>
+    </MenuItem>
+
+    <MenuItem id="defPlugins">
+        <Name>Define Plugins to be used in Event</Name>
+        <ConfigUI>
+
+            <Field id="DefinePluginsAndNew"  type="checkbox" defaultValue="false" hidden="yes">            </Field>
+            <Field id="DefinePluginsAndOld"  type="checkbox" defaultValue="false" hidden="yes">            </Field>
+
+            <Field  id="text0-1"    type="textfield"  defaultValue="  and then confirm !"     readonly="yes">
+                <Label>Select PLUGIN to be listended to.................</Label>
+            </Field>
+
+            <Field   id="selectedExistingOrNewPlugin" type="menu"  >
+                <Label>Select new or existing plugin:</Label>
+                <List class="self" filter="" method="filterExistingPlugins" dynamicReload="true"/>
+            </Field>
+
+            <Field   id="idbuttonConfimNewOrExistingPlugin" type="button"	>
+                <Label>click to confirm selection </Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmExistingOrNewPluginCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field   id="idbuttonConfirmDelPlugin" type="button"	visibleBindingId="DefinePluginsAndOld" visibleBindingValue="true">
+                <Label>to DELETE click</Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmDeletePluginCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field   id="selectedNewPluginID" type="menu" defaultValue="0" visibleBindingId="DefinePluginsAndNew" visibleBindingValue="true">
+                <Label>Pick new Plugin:</Label>
+                <List class="self" filter="" method="filterNewPlugins" dynamicReload="false"/>
+            </Field>
+
+            <Field   id="idbuttonConfirmNewPlugin" type="button"	visibleBindingId="DefinePluginsAndNew" visibleBindingValue="true">
+                <Label>After selection click</Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmPluginNewCALLBACK</CallbackMethod>
+            </Field>
+
+       </ConfigUI>
+    </MenuItem>
+
+
+
+    <MenuItem id="defDevices">
+        <Name>Define ON/off Devices to be tracked </Name>
+        <ConfigUI>
+            <Field id="DefineDevicesAndNew"  type="checkbox" defaultValue="false" hidden="yes">            </Field>
+            <Field id="DefineDevicesAndOld"  type="checkbox" defaultValue="false" hidden="yes">            </Field>
+            <Field id="selectStatesOK"       type="checkbox" defaultValue="false" hidden="yes">            </Field>
+            <Field    id="msg" type="textfield" defaultValue=""  readonly="yes"> <Label>message from plugin:</Label>     </Field>
+
+
+            <Field  id="text1-1"    type="textfield"  defaultValue="  and then confirm !"     readonly="yes">
+                <Label>Select ON/off Device to be tracked.................</Label>
+            </Field>
+
+            <Field   id="selectedExistingOrNewDevice" type="menu"  >
+                <Label>Select existing or new Device:</Label>
+                <List class="self" filter="" method="filterExistingDevices" dynamicReload="true"/>
+            </Field>
+
+            <Field   id="idbuttonConfimNewOrExistingDevice" type="button"	>
+                <Label>click to confirm selection </Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmExistingOrNewDeviceCALLBACK</CallbackMethod>
+            </Field>
+
+
+            <Field   id="idbuttonConfirmDelDevice" type="button"	visibleBindingId="DefineDevicesAndOld" visibleBindingValue="true">
+                <Label>to DELETE click</Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmDeleteDeviceCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field   id="selectedNewDeviceID" type="menu" defaultValue="0" visibleBindingId="DefineDevicesAndNew" visibleBindingValue="true">
+                <Label>Pick new Device:</Label>
+                <List class="self" filter="" method="filterNewDevices" dynamicReload="false"/>
+            </Field>
+
+            <Field   id="idbuttonConfirmNewDevice" type="button"	visibleBindingId="DefineDevicesAndNew" visibleBindingValue="true">
+                <Label>After selection click</Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmDeviceNewCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field id="infoLabel230" type="label"> <Label></Label>  </Field>
+
+            <Field   id="text1-2"    type="textfield" defaultValue="  and then confirm !" readonly="yes" visibleBindingId="selectStatesOK" visibleBindingValue="true" >
+                <Label>Select State of Device to be tracked.....</Label>
+            </Field>
+
+            <Field   id="selectedState" type="menu" visibleBindingId="selectStatesOK" visibleBindingValue="true"   >
+                <Label>Select State:</Label>
+                <List class="self" filter="" method="filterStates" dynamicReload="true"/>
+            </Field>
+            <Field    id="homeDelay" type="menu" tooltip=""  defaultValue="60"  visibleBindingId="selectStatesOK" visibleBindingValue="true" >
+                <Label>Home to x:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+            <Field    id="awayDelay" type="menu" tooltip="" defaultValue="60"  visibleBindingId="selectStatesOK" visibleBindingValue="true" >
+                <Label>x to Away:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+
+            <Field   id="idbuttonConfirmState" type="button" visibleBindingId="selectStatesOK" visibleBindingValue="true" >
+                <Label>click</Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmStateCALLBACK</CallbackMethod>
+            </Field>
+
+        </ConfigUI>
+    </MenuItem>
+    
+    
+    <MenuItem id="defDoors">
+        <Name>Define DOOR type devices to be tracked </Name>
+        <ConfigUI>
+
+            <Field id="DefineDoorsAndNew"    type="checkbox" defaultValue="false" hidden="yes">            </Field>
+            <Field id="DefineDoorsAndOld"    type="checkbox" defaultValue="false" hidden="yes">            </Field>
+            <Field id="selectDoorsStatesOK"  type="checkbox" defaultValue="false" hidden="yes">            </Field>
+
+            <Field    id="msg" type="textfield" defaultValue=""  readonly="yes"> <Label>message from plugin:</Label>     </Field>
+
+            <Field  id="text3-1"    type="textfield"  defaultValue="  and then confirm !"     readonly="yes">
+                <Label>1. Select Door type Device to be tracked.................</Label>
+            </Field>
+
+            <Field   id="selectedExistingOrNewDoor" type="menu"  >
+                <Label>Select existing or new Door Door:</Label>
+                <List class="self" filter="" method="filterExistingDoors" dynamicReload="true"/>
+            </Field>
+
+
+            <Field   id="idbuttonConfimNewOrExistingDoor" type="button"	>
+                <Label>click to confirm selection </Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmExistingOrNewDoorCALLBACK</CallbackMethod>
+            </Field>
+
+
+            <Field   id="idbuttonConfirmDelDoor" type="button"	visibleBindingId="DefineDoorsAndOld" visibleBindingValue="true">
+                <Label>to DELETE click</Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmDeleteDoorCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field   id="selectedNewDoorID" type="menu" defaultValue="0" visibleBindingId="DefineDoorsAndNew" visibleBindingValue="true">
+                <Label>Pick new Door:</Label>
+                <List class="self" filter="" method="filterNewDoors" dynamicReload="false"/>
+            </Field>
+
+            <Field   id="idbuttonConfirmNewDoor" type="button"	visibleBindingId="DefineDoorsAndNew" visibleBindingValue="true">
+                <Label>After selection click</Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmDoorNewCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field id="infoLabel330" type="label"> <Label></Label>  </Field>
+
+            <Field   id="text3-2"    type="textfield" defaultValue="  and then confirm !" readonly="yes" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true" >
+                <Label>2. Select State of Door to be tracked.</Label>
+            </Field>
+
+            <Field   id="selectedDoorState" type="menu" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   >
+                <Label>Select Door State:</Label>
+                <List class="self" filter="" method="filterDoorStates" dynamicReload="true"/>
+            </Field>
+
+            <Field   id="pollingIntervall" type="menu" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   >
+                <Label>pollingIntervall:</Label>
+                <List class="self" filter="short" method="filterDelayValues" dynamicReload="true"/>
+            </Field>
+            <Field     id="requireStatusChange" type="menu" defaultValue="yes" >
+                <Label>When testing if device has chnaged, require status change:</Label>
+                <List>
+                    <Option value="yes" >YES</Option>
+                    <Option value="no"  >no, ignore status change, just test lastChanged</Option>
+                </List>
+            </Field>
+
+
+            <Field   id="idbuttonConfirmDoorState" type="button" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true" >
+                <Label>click</Label><Title>CONFIRM</Title>
+                <CallbackMethod>buttonConfirmDoorStateCALLBACK</CallbackMethod>
+            </Field>
+
+
+        </ConfigUI>
+    </MenuItem>
+    
+    
+    
+</MenuItems>

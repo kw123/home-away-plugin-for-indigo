@@ -1,0 +1,546 @@
+<?xml version="1.0"?>
+<Events>
+    <Event id="one-home-no">
+        <Name>At least ONE Device must be HOME</Name>
+        <ConfigUI>
+            <Field    id="msg" type="textfield" defaultValue="">
+                <Label>message from plugin:</Label>
+            </Field>
+
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+                <Label>min time between Trigger Repeat:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+                <Label>delay after devices triggered:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+
+            <Field    id="break2" type="label" defaultValue=""> </Field>
+
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+                <Label>select devices in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
+                <Label>select devices in Event:</Label>
+                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
+                <Label>add new Devices:</Label>
+                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+            <Field    id="break3" type="label" defaultValue=""> </Field>
+
+
+
+        </ConfigUI>
+    </Event>
+    <Event id="all-home-no">
+        <Name>ALL Devices must be HOME</Name>
+        <ConfigUI>
+            <Field    id="msg" type="textfield" defaultValue="">
+                <Label>message from plugin:</Label>
+            </Field>
+
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+                <Label>min time between Trigger Repeat:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+                <Label>delay after devices triggered:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+
+            <Field    id="break2" type="label" defaultValue=""> </Field>
+
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+                <Label>select devices in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
+                <Label>select devices in Event:</Label>
+                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
+                <Label>add new Devices:</Label>
+                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+        </ConfigUI>
+    </Event>
+    <Event id="one-away-no">
+        <Name>At least ONE Device must be AWAY</Name>
+        <ConfigUI>
+            <Field    id="msg" type="textfield" defaultValue="">
+                <Label>message from plugin:</Label>
+            </Field>
+
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+                <Label>min time between Trigger Repeat:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+                <Label>delay after devices triggered:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+
+            <Field    id="break2" type="label" defaultValue=""> </Field>
+
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+                <Label>select devices in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
+                <Label>select devices in Event:</Label>
+                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
+                <Label>add new Devices:</Label>
+                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            </Field>
+        </ConfigUI>
+    </Event>
+    <Event id="all-away-no">
+        <Name>ALL Devices must be AWAY </Name>
+        <ConfigUI>
+            <Field    id="msg" type="textfield" defaultValue="">
+                <Label>message from plugin:</Label>
+            </Field>
+
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+                <Label>min time between Trigger Repeat:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+                <Label>delay after devices triggered:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+
+            <Field    id="break2" type="label" defaultValue=""> </Field>
+
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+                <Label>select devices in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
+                <Label>select devices in Event:</Label>
+                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
+                <Label>add new Devices:</Label>
+                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+        </ConfigUI>
+    </Event>
+    <Event id="one-home-doors">
+        <Name>At least ONE Device must be HOME with Door condition</Name>
+        <ConfigUI>
+            <Field    id="msg" type="textfield" defaultValue="">
+                <Label>message from plugin:</Label>
+            </Field>
+
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+                <Label>min time between Trigger Repeat:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+                <Label>delay after devices triggered:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+
+            <Field    id="break2" type="label" defaultValue=""> </Field>
+
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+                <Label>select devices in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
+                <Label>select devices in Event:</Label>
+                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
+                <Label>add new Devices:</Label>
+                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+            <Field    id="break3" type="label" defaultValue=""> </Field>
+
+
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="" >
+                <Label>select doors in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="existing,delete" >
+                <Label>select Door:</Label>
+                <List class="self" filter="existing" method="filterDoorsEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="new" >
+                <Label>select Door:</Label>
+                <List class="self" filter="new" method="filterDoorsEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDoor" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="delete" >
+                <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>time window for door-open event active:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>To save Door settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDoorsSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+        </ConfigUI>
+    </Event>
+    <Event id="all-home-doors">
+        <Name>ALL Devices must be HOME with Door condition</Name>
+        <ConfigUI>
+            <Field    id="msg" type="textfield" defaultValue="">
+                <Label>message from plugin:</Label>
+            </Field>
+
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+                <Label>min time between Trigger Repeat:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+                <Label>delay after devices triggered:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+
+            <Field    id="break2" type="label" defaultValue=""> </Field>
+
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+                <Label>select devices in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
+                <Label>select devices in Event:</Label>
+                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
+                <Label>add new Devices:</Label>
+                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+            <Field    id="break3" type="label" defaultValue=""> </Field>
+
+
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="" >
+                <Label>select doors in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="existing,delete" >
+                <Label>select Door:</Label>
+                <List class="self" filter="existing" method="filterDoorsEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="new" >
+                <Label>select Door:</Label>
+                <List class="self" filter="new" method="filterDoorsEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDoor" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="delete" >
+                <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>time window for door-open event active:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>To save Door settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDoorsSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+        </ConfigUI>
+    </Event>
+    <Event id="one-away-doors">
+        <Name>At least ONE Device must be AWAY with Door condition</Name>
+        <ConfigUI>
+            <Field    id="msg" type="textfield" defaultValue="">
+                <Label>message from plugin:</Label>
+            </Field>
+
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+                <Label>min time between Trigger Repeat:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+                <Label>delay after devices triggered:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+
+            <Field    id="break2" type="label" defaultValue=""> </Field>
+
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+                <Label>select devices in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
+                <Label>select devices in Event:</Label>
+                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
+                <Label>add new Devices:</Label>
+                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+            <Field    id="break3" type="label" defaultValue=""> </Field>
+
+
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="" >
+                <Label>select doors in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="existing,delete" >
+                <Label>select Door:</Label>
+                <List class="self" filter="existing" method="filterDoorsEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="new" >
+                <Label>select Door:</Label>
+                <List class="self" filter="new" method="filterDoorsEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDoor" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="delete" >
+                <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>time window for door-open event active:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>To save Door settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDoorsSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+        </ConfigUI>
+    </Event>
+    <Event id="all-away-doors">
+        <Name>ALL Devices must be AWAY with Door condition</Name>
+        <ConfigUI>
+            <Field    id="msg" type="textfield" defaultValue="">
+                <Label>message from plugin:</Label>
+            </Field>
+
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+                <Label>min time between Trigger Repeat:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+                <Label>delay after devices triggered:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+
+            <Field    id="break2" type="label" defaultValue=""> </Field>
+
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+                <Label>select devices in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
+                <Label>select devices in Event:</Label>
+                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
+                <Label>add new Devices:</Label>
+                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            </Field>
+
+            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+            <Field    id="break3" type="label" defaultValue=""> </Field>
+
+
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="" >
+                <Label>select doors in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="existing" >edit existing </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
+            <Field     id="selectExistingDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="existing,delete" >
+                <Label>select Door:</Label>
+                <List class="self" filter="existing" method="filterDoorsEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field     id="selectNewDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="new" >
+                <Label>select Door:</Label>
+                <List class="self" filter="new" method="filterDoorsEvent"  dynamicReload="true"/>
+            </Field>
+
+            <Field    id="confirmRemoveDoor" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="delete" >
+                <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>time window for door-open event active:</Label>
+                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>To save Door settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDoorsSettingsCALLBACK</CallbackMethod>
+            </Field>
+
+
+        </ConfigUI>
+    </Event>
+</Events>
+
+

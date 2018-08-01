@@ -1,0 +1,16 @@
+<Actions>
+
+
+    <Action id="receiveDevicesParametersUpdateAction" uiPath="hidden" >
+        <Name>--- only for python Script---</Name>
+        <CallbackMethod>receiveDevicesParametersUpdateAction</CallbackMethod>
+    </Action>
+
+    <Action id="receiveDeviceChangedAction" uiPath="hidden" >
+        <Name>--- only for python Script---</Name>
+        <CallbackMethod>receiveDeviceChangedAction</CallbackMethod>
+    </Action>
+
+
+
+</Actions>
