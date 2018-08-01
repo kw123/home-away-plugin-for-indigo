@@ -8,7 +8,7 @@ Details
 That info can be combined into groups to define away / home status (oneHome, allHome, oneAway, allAway) for the group of devices (individual, family, guests)
 Together with expiration/delay times that can be set to allow a state going from UP/down/UP on a per device and or a per EVENT basis.
 The ON/off devices must be from a plugin that braodcasts their states = support indigo internal BC-API. THIS pugin will subscribe to their broadcasts.
-The plugin can set variables with the number of devices ON/off (set in config)
+The plugin can set variables with the number of devices ON/off (set in config)  
 ==2. THEN you can add devices like a DOOR open/close type (from alarm plugins or zwave/ insteon sensors) to set a time window for changes of the ON/off devices to be considered.
 eg if a pibeacon goes ON to off and no door was opened in eg  +- 2 minutes the away trigger would not fire.
 The Door devices can be any device with an On/off .. 1/0 state. They are polled on a regular basis(set in config)
