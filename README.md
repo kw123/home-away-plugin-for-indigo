@@ -23,7 +23,7 @@ You define the EVENTS in Indigo add new Trigger where you select
 Type = homeAway  
 Event = All/One Device(s) must be ... home /Away  
 you can use OneAway/Home or allAway/Home triggers for you or your family iBeacons/ iPhones  
-======= initial setup =======  
+3. ======= initial setup =======  
 --0. in config set basic parameters like repeat times, variables names, debug levels  
 --1. define the plugins that participate(Broadcast)  (menu)  
 --2. define the ON/off devices (menu) from these plugins you want to use  
