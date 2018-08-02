@@ -7,12 +7,12 @@
                 <Label>message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
                 <Label>min time between Trigger Repeat:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
                 <Label>delay after devices triggered:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
@@ -20,7 +20,7 @@
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
                 <Label>select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -61,12 +61,12 @@
                 <Label>message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
                 <Label>min time between Trigger Repeat:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
                 <Label>delay after devices triggered:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
@@ -74,7 +74,7 @@
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
                 <Label>select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -111,12 +111,12 @@
                 <Label>message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
                 <Label>min time between Trigger Repeat:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
                 <Label>delay after devices triggered:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
@@ -124,7 +124,7 @@
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
                 <Label>select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -159,12 +159,12 @@
                 <Label>message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
                 <Label>min time between Trigger Repeat:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
                 <Label>delay after devices triggered:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
@@ -172,7 +172,7 @@
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
                 <Label>select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -208,12 +208,12 @@
                 <Label>message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
                 <Label>min time between Trigger Repeat:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
                 <Label>delay after devices triggered:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
@@ -221,7 +221,7 @@
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
                 <Label>select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -252,7 +252,7 @@
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
 
-            <Field     id="newOrExistingDoor" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
                 <Label>select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -293,12 +293,12 @@
                 <Label>message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
                 <Label>min time between Trigger Repeat:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
                 <Label>delay after devices triggered:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
@@ -306,7 +306,7 @@
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
                 <Label>select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -337,7 +337,7 @@
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
 
-            <Field     id="newOrExistingDoor" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
                 <Label>select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -378,12 +378,12 @@
                 <Label>message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
                 <Label>min time between Trigger Repeat:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
                 <Label>delay after devices triggered:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
@@ -391,7 +391,7 @@
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
                 <Label>select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -422,7 +422,7 @@
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
 
-            <Field     id="newOrExistingDoor" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
                 <Label>select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -463,12 +463,12 @@
                 <Label>message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="" >
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
                 <Label>min time between Trigger Repeat:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="" >
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
                 <Label>delay after devices triggered:</Label>
                 <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
@@ -476,7 +476,7 @@
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
                 <Label>select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -507,7 +507,7 @@
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
 
-            <Field     id="newOrExistingDoor" type="menu" defaultValue="" >
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
                 <Label>select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>

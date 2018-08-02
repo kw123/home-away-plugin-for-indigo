@@ -5,7 +5,7 @@
 
     <Field id="infoLabel01" type="label"> <Label>== General parameters:... </Label>  </Field>
 
-            <Field     id="eventUpdateWait" type="menu" defaultValue="5" >
+            <Field     id="eventUpdateWait" type="menu" defaultValue="5" tooltip="" >
                 <Label>How often to check for Event changes:</Label>
                 <List class="self" filter="short" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
@@ -26,7 +26,7 @@
     <Field id="infoLabel226" type="label"> <Label>== Debug:... </Label>  </Field>
 
     <Field    id="debugSETUP"       type="checkbox"  defaultValue="false"   > <Label>... (1) SETUP..:</Label>  </Field>
-    <Field    id="debugRECEIVE"     type="checkbox"  defaultValue="false"   > <Label>... (2) receive events:</Label>  </Field>
+    <Field    id="debugRECEIVE"     type="checkbox"  defaultValue="false"   > <Label>... (2) receive device broadcasts:</Label>  </Field>
     <Field    id="debugEVENTS"      type="checkbox"  defaultValue="false"   > <Label>... (3) process EVENTS:</Label>  </Field>
     <Field    id="debugDOORS"       type="checkbox"  defaultValue="false"   > <Label>... (4) DOOR devices:</Label>  </Field>
     <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (10) all of the above = everything:</Label>  </Field>

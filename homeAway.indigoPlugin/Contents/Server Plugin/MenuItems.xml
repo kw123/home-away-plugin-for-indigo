@@ -1,9 +1,25 @@
 <MenuItems>
 
+
+    <MenuItem id="startEventTracking">
+        <Name>Start event tracking in logfile</Name>
+        <CallbackMethod>startEventTracking</CallbackMethod>
+    </MenuItem>
+
+
+    <MenuItem id="stopEventTracking">
+        <Name>Stop event tracking in logfile</Name>
+        <CallbackMethod>stopEventTracking</CallbackMethod>
+    </MenuItem>
+
     <MenuItem id="print">
         <Name>Print/ HELP info</Name>
         <ConfigUI>
 
+                <Field id="printHELP" type="button"> 
+                    <Label>Print   HELP </Label> 
+                    <Title>CLICK</Title><CallbackMethod>printHELP</CallbackMethod>
+                </Field>
                 <Field id="printEVENTS" type="button"> 
                     <Label>Print   Events</Label> 
                     <Title>CLICK</Title><CallbackMethod>printEVENTS</CallbackMethod>
@@ -15,10 +31,6 @@
                 <Field id="printDOORS" type="button"> 
                     <Label>Print   DOORS</Label> 
                     <Title>CLICK</Title><CallbackMethod>printDOORS</CallbackMethod>
-                </Field>
-                <Field id="printHELP" type="button"> 
-                    <Label>Print   HELP </Label> 
-                    <Title>CLICK</Title><CallbackMethod>printHELP</CallbackMethod>
                 </Field>
         </ConfigUI>
     </MenuItem>
@@ -147,7 +159,7 @@
             </Field>
 
             <Field   id="selectedExistingOrNewDoor" type="menu"  >
-                <Label>Select existing or new Door Door:</Label>
+                <Label>Select existing or new Door Device:</Label>
                 <List class="self" filter="" method="filterExistingDoors" dynamicReload="true"/>
             </Field>
 
@@ -164,7 +176,7 @@
             </Field>
 
             <Field   id="selectedNewDoorID" type="menu" defaultValue="0" visibleBindingId="DefineDoorsAndNew" visibleBindingValue="true">
-                <Label>Pick new Door:</Label>
+                <Label>Pick new Door Device:</Label>
                 <List class="self" filter="" method="filterNewDoors" dynamicReload="false"/>
             </Field>
 
@@ -176,11 +188,11 @@
             <Field id="infoLabel330" type="label"> <Label></Label>  </Field>
 
             <Field   id="text3-2"    type="textfield" defaultValue="  and then confirm !" readonly="yes" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true" >
-                <Label>2. Select State of Door to be tracked.</Label>
+                <Label>2. Select State of Door Device to be tracked.</Label>
             </Field>
 
             <Field   id="selectedDoorState" type="menu" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   >
-                <Label>Select Door State:</Label>
+                <Label>Select Door Device State:</Label>
                 <List class="self" filter="" method="filterDoorStates" dynamicReload="true"/>
             </Field>
 
@@ -189,10 +201,10 @@
                 <List class="self" filter="short" method="filterDelayValues" dynamicReload="true"/>
             </Field>
             <Field     id="requireStatusChange" type="menu" defaultValue="yes" >
-                <Label>When testing if device has chnaged, require status change:</Label>
+                <Label>When testing if device has changed, require state change also:</Label>
                 <List>
                     <Option value="yes" >YES</Option>
-                    <Option value="no"  >no, ignore status change, just test lastChanged</Option>
+                    <Option value="no"  >no, ignore state change, just test lastChanged</Option>
                 </List>
             </Field>
 

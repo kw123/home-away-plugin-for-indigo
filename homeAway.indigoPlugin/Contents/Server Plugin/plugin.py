@@ -99,6 +99,7 @@ class Plugin(indigo.PluginBase):
         self.triggerList            = []
         self.DeviceSelected         = "0"
         self.DoorSelected           = "0"
+        self.enableEventTracking    = False
         self.logFileActive          = ""
         self.logFile                = ""
         self.debugLevel             = []
@@ -115,6 +116,7 @@ class Plugin(indigo.PluginBase):
         self.acceptableStateValues  = ["up","down","expired","on","off","yes","no","true","false","t","f","1","0","ja","nein","an","aus","open","closed","auf","zu"]
         self.emptyDEVICE            = {"up":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"down":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"valueForON":"","pluginId":"","name":"","used":False}
         self.emptyDOOR              = {"lastChange":0,"lastChangeDT":"","signalReceived":"","state":"","name":"","used":False,"requireStatusChange":True,"pollingIntervall":10,"lastCheck":0}
+        self.evPropsToPrint         = ["devicesMembers","devicesCountTRUE","devicesCountTRUELast","devicesTrigger","devicesTriggerTime","doorsMembers","doorsTimeWindow","triggerTimeLast","minTimeTriggerBeforeRepeat","delayAfterDeviceTrigger"]
 
         self.PLUGINS                ={"excluded":{},"acceptable":{},"used":{},"all":{}}
         for item in ["com.perceptiveautomation.indigoplugin.zwave","com.karlwachs.utilities","com.karlwachs.INDIGOplotD","com.ssi.indigoplugin.SONOS",\
@@ -162,25 +164,26 @@ class Plugin(indigo.PluginBase):
 
         typeIdSplit = typeId.split("-")
         if targetId ==0:
-            valuesDict["oneAll"]             = typeIdSplit[0]
-            valuesDict["homeAway"]           = typeIdSplit[1]
-            valuesDict["noDoors"]            = typeIdSplit[2]
+            valuesDict["oneAll"]                = typeIdSplit[0]
+            valuesDict["homeAway"]              = typeIdSplit[1]
+            valuesDict["noDoors"]               = typeIdSplit[2]
             
-            valuesDict["doorsMembers"]       = "[]"
-            valuesDict["devicesMembers"]     = "[]"
-            valuesDict["lastTriggerTime"]    = 0 
-            valuesDict["devicesTrigger"]     = False
-            valuesDict["devicesTriggerTime"] = 0
-            valuesDict["devicesCountOK"]     = 0
-            valuesDict["newOrExistingDevice"]= "new"
-            valuesDict["newOrExistingDoor"]  = "new"
-            valuesDict["doorsTimeWindow"]    = 300
+            valuesDict["doorsMembers"]          = "[]"
+            valuesDict["devicesMembers"]        = "[]"
+            valuesDict["triggerTimeLast"]       = 0 
+            valuesDict["devicesTrigger"]        = False
+            valuesDict["devicesTriggerTime"]    = 0
+            valuesDict["devicesCountTRUE"]      = 0
+            valuesDict["devicesCountTRUELast"]  = 0
+            valuesDict["newOrExistingDevice"]   = "new"
+            valuesDict["newOrExistingDoor"]     = "new"
+            valuesDict["doorsTimeWindow"]       = 300
             self.devicesMembers =[]
             self.doorsMembers =[]
         else:
-            valuesDict["oneAll"]             = typeIdSplit[0]
-            valuesDict["homeAway"]           = typeIdSplit[1]
-            valuesDict["noDoors"]            = typeIdSplit[2]
+            valuesDict["oneAll"]                = typeIdSplit[0]
+            valuesDict["homeAway"]              = typeIdSplit[1]
+            valuesDict["noDoors"]               = typeIdSplit[2]
             self.devicesMembers = json.loads(valuesDict["devicesMembers"])
             self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(self.devicesMembers, valuesDict["devicesMembers"])
 
@@ -448,32 +451,33 @@ class Plugin(indigo.PluginBase):
     def printHELP(self,valuesDict,typeId):
         indigo.server.log("\n\
 Purpose of the plugin:\n\
-create reliable info for home away status by using regular on/of devcies and DOOR info to time gate the status changes\n\
-==1. collect info from other ON/off(UP/down..) devices that broadcast their states eg pibeacon, fingscan, unifi.\n\
-That info can be combined into groups to define away / home status (oneHome, allHome, oneAway, allAway) for the group of devices\n\
+create reliable info for home away status by using regular on/of devices and DOOR info to time gate the status changes\n\
+It combines the info of several sensors with an AND (all must be up / down) and applies a time gate of the DOOR info to trigger \n\
+home / away events\n\
+Details\n\
+==1. collect info from other ON/off(UP/down..) devices that broadcast their states eg piBeacon, fingscan, UniFi.\n\
+That info can be combined into groups to define away / home status (oneHome, allHome, oneAway, allAway) for the group of devices (individual, family, guests)\n\
 Together with expiration/delay times that can be set to allow a state going from UP/down/UP on a per device and or a per EVENT basis.\n\
-The ON/off devices must be from a plugin that braodcasts their states. THIS pugin will subscribe to their broadcasts.\n\
+The ON/off devices must be from a plugin that braodcasts their states = support indigo internal BC-API. THIS pugin will subscribe to their broadcasts.\n\
 The plugin can set variables with the number of devices ON/off (set in config)\n\
-==2. you can add devices like a DOOR open/close type (from alarm plugins or zwave/ insteon sensors) to set a time window for changes of the ON/off devices to be considered.\n\
-eg if a pibeacon goes ON to off and no door was opened in eg the last 2 minutes the away trigger would not fire.\n\
+==2. THEN you can add devices like a DOOR open/close type (from alarm plugins or zwave/ insteon sensors) to set a time window for changes of the ON/off devices to be considered.\n\
+eg if a pibeacon goes ON to off and no door was opened in eg  +- 2 minutes the away trigger would not fire.\n\
 The Door devices can be any device with an On/off .. 1/0 state. They are polled on a regular basis(set in config)\n\
 Examples:\n\
-use your door sensor as DOOR device, set Time Window to 2 minutes\n\
-use 1 or n ibeacons or iphone Unifi / fingscan devices as 'DEVICE'\n\
-set delay before trigger to 5 seconds - to avoid on/off/on scenarious\n\
-1. then when you physically exit the door triggers starts its time window (before and after)\n\
-if one of the eg ibeacons goes off within  2 minutes One/all Away condition is True\n\
-2. when coming back ibeacon goes on, but does not set Home condition, only after the door opens (within 2 minutes) the One/All home condition is met.\n\
-You define the EVENtS in triggers where you select \n\
+Use your door sensor as DOOR device, set Time Window to 2 minutes\n\
+Use 1 or n iBeacons and or iphone Unifi / fingscan devices as 'DEVICEs'\n\
+Set delay before trigger to 5 seconds - to avoid on/off/on scenarious\n\
+1. Then, when you physically exit the door device starts its time window (x minutes before and after)\n\
+if the eg ibeacons/iPhone goes off within  2 minutes One/all Away condition is True and the event gets triggered\n\
+2. When coming back iBeacon/iPhone goes on, but does not set Home condition, only after the door opens (within 2 minutes) the One/All home condition is met.\n\
+You define the EVENTS in Indigo add new Trigger where you select \n\
 Type = homeAway\n\
 Event = All/One Device(s) must be ... home /Away\n\
-\n\
-you can use OneAway/Home or allAway/Home triggers for you or your family beacons/ iphones\n\
-\n\
-======= setup =======\n\
+you can use OneAway/Home or allAway/Home triggers for you or your family iBeacons/ iPhones\n\
+======= initial setup =======\n\
 --0. in config set basic parameters like repeat times, variables names, debug levels\n\
 --1. define the plugins that participate(Broadcast)  (menu)\n\
---2. define the ON/off devices (menu) from these plugins \n\
+--2. define the ON/off devices (menu) from these plugins you want to use\n\
 --3. define the DOOR type devices (menu) from any ON/off device\n\
 --4. Create a Trigger using the plugin configured EVENTS/events and subtypes (one/all/ home/away door/noDoor.. ) that can use one or many of the above defined devices to trigger actions\n\
 ")
@@ -485,12 +489,11 @@ you can use OneAway/Home or allAway/Home triggers for you or your family beacons
         return valuesDict
 
     def printEVENT(self,valuesDict,typeId,item):
-        propsToPrint =["devicesMembers","devicesCountOK","devicesTrigger","devicesTriggerTime","doorsMembers","doorsTimeWindow","lastTriggerTime","minTimeTriggerBeforeRepeat","delayAfterDeviceTrigger"]
         props = item.pluginProps
         self.ML.myLog(text ="ev id: "+ unicode(item.id).ljust(12)+ "; ev Type: "+item.pluginTypeId +" ==== EVENT",mType=item.name+"==")
-        for prop in props:
-            if prop in propsToPrint:
-                self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(props[prop]),mType="EVENTS")
+        for prop in self.evPropsToPrint:
+            if prop not in props: continue
+            self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(props[prop]),mType="EVENTS")
         return valuesDict
 
 
@@ -512,6 +515,17 @@ you can use OneAway/Home or allAway/Home triggers for you or your family beacons
             for prop in propsToPrint:
                     self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(self.DOORS[DEVICEid][prop]),mType="DOOR")
         return valuesDict
+
+    def startEventTracking(self):
+        self.ML.myLog(text =" enabled EventTracking")
+        self.enableEventTracking = True
+        return 
+
+
+    def stopEventTracking(self):
+        self.ML.myLog(text =" disabled EventTracking ")
+        self.enableEventTracking = False
+        return 
 
 
 
@@ -929,7 +943,8 @@ you can use OneAway/Home or allAway/Home triggers for you or your family beacons
 
         ## update devices in case state have changed while we were down 
         self.getDEVICEstates()
-
+        self.fixEVprops()
+        
         #for ev in indigo.triggers.iter(self.pluginId):
         #        indigo.server.log(unicode(ev))
         ################   ------- here the loop starts    --------------
@@ -1159,20 +1174,24 @@ you can use OneAway/Home or allAway/Home triggers for you or your family beacons
                     self.DEVICES[DEVICEid]["down"]["signalReceived"]  = not UP
 
                     if save or upd >0: self.saveDEVICES()
-                    if self.ML.decideMyLog(u"RECEIVE"): 
-                            self.ML.myLog( text = "receiveDeviceChanged: DEVICE upd 1 "+unicode(upd)+"  "
-                    "; stateUP:>"+self.DEVICES[DEVICEid]["up"]["state"]+"<"+
-                    "; signalReceivedUP: "+unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"])+
-                    "; stateDN: "+self.DEVICES[DEVICEid]["down"]["state"]+
-                    "; signalReceivedDN: "+unicode(self.DEVICES[DEVICEid]["down"]["signalReceived"]))
-                    self.updateDeviceStatus(DEVICEid,periodCheck="-event-", callEvent=(upd==2)) # set new status now 
+                    if self.enableEventTracking or  self.ML.decideMyLog(u"RECEIVE"): 
+                        dd = DEVICEid.split(":::")
+                        self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
+                    "; stateUP:"+self.DEVICES[DEVICEid]["up"]["state"].ljust(13)+
+                    "; signRecUP:"+unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"]).ljust(6)+
+                    "; lChgUP:%6.1f"%(min(time.time()-self.DEVICES[DEVICEid]["up"]["lastChange"],9999))+
+                    "; stateDN:"+self.DEVICES[DEVICEid]["down"]["state"].ljust(13)+
+                    "; signRecDN:"+unicode(self.DEVICES[DEVICEid]["down"]["signalReceived"]).ljust(6)+
+                    "; lChgDN:%6.1f"%(min(time.time()-self.DEVICES[DEVICEid]["down"]["lastChange"],9999))+
+                    "",     mType="rcvBC:"+msg["name"])
+                    self.updateDeviceStatus(DEVICEid,periodCheck="devChg", callEvent=(upd==2)) # set new status now 
         except Exception, e:
             indigo.server.log(u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
     ####-----------------  update device status  ---------
     def periodCheckDEVICES(self):
         for DEVICEid in self.DEVICES:
-            self.updateDeviceStatus(DEVICEid, periodCheck="period check")
+            self.updateDeviceStatus(DEVICEid, periodCheck="period")
         return 
         
     ####-----------------  update individual device status  ---------
@@ -1191,13 +1210,17 @@ you can use OneAway/Home or allAway/Home triggers for you or your family beacons
                 upd = True        
             if upd or callEvent: 
                 self.saveDEVICES()
-                self.updateEVENTStatus(source="updateDeviceStatus")
-            if self.ML.decideMyLog(u"RECEIVE"): 
-                self.ML.myLog( text = "updateDeviceStatus,"+periodCheck.ljust(13)+", DEVICE "+DEVICEid+"  "+
-                    "; stateUP:>"+self.DEVICES[DEVICEid]["up"]["state"]+"<"+
-                    "; signalReceivedUP: "+unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"])+
-                    "; stateDN:>"+self.DEVICES[DEVICEid]["down"]["state"]+"<"+
-                    "; signalReceivedDN: "+unicode(self.DEVICES[DEVICEid]["down"]["signalReceived"]))
+                self.updateEVENTStatus(source=periodCheck)
+            if self.enableEventTracking or  self.ML.decideMyLog(u"RECEIVE"): 
+                dd = DEVICEid.split(":::")
+                self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
+                    ";  stateUP:"+self.DEVICES[DEVICEid]["up"]["state"].ljust(13)+
+                    ";  signRecUP:"+unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"])[0]+
+                    ";  lChgUP:%5.1f"%(min(time.time()-self.DEVICES[DEVICEid]["up"]["lastChange"],999))+
+                    ";  stateDN:"+self.DEVICES[DEVICEid]["down"]["state"].ljust(13)+
+                    ";  signRecDN:"+unicode(self.DEVICES[DEVICEid]["down"]["signalReceived"])[0]+
+                    ";  lChgDN:%5.1f"%(min(time.time()-self.DEVICES[DEVICEid]["down"]["lastChange"],999))+
+                    "",     mType="rcvBC:"+periodCheck)
 
         except  Exception, e:
             if len(unicode(e)) > 5:
@@ -1210,10 +1233,9 @@ you can use OneAway/Home or allAway/Home triggers for you or your family beacons
             self.lastEventUpdate  = time.time()
             self.updateEVENTS     = {} #reset any pending update , wil be done after this 
             save = False
-            if self.ML.decideMyLog(u"EVENTS"): 
-                self.ML.myLog( text = "updateEVENTStatus: "+source )
 
             for EVENT in indigo.triggers.iter(self.pluginId):
+                if not EVENT.enabled : continue
                 props = EVENT.pluginProps
                 counter = {"home":0,"away":0}
                 devicesM = json.loads(props["devicesMembers"])
@@ -1245,66 +1267,63 @@ you can use OneAway/Home or allAway/Home triggers for you or your family beacons
                 noDoors  = props["noDoors"] 
                 triggerType = oneAll+"-"+homeAway+"-"+noDoors
 
-                oldDevicesCountOK = props["devicesCountOK"]
+                try:    olddevicesCountTRUE = int(props["devicesCountTRUE"])
+                except: olddevicesCountTRUE = 0
                 ### make  the device summary input
                 if (  oneAll == "all" and counter[homeAway] == len(devicesM) ) or \
-                   (  oneAll == "one" and counter[homeAway] >= 1 and oldDevicesCountOK == 0 ):  # one : if 0--> 1;  not (if 1->2 or 2->3 or 2->1)
-                    if  props["devicesCountOK"] != counter[homeAway]:
-                        props["devicesTrigger"]     = True 
-                        props["devicesTriggerTime"] = time.time()  # start the timer 
+                   (  oneAll == "one" and counter[homeAway] >= 1 and olddevicesCountTRUE == 0 ):  # one : if 0--> 1;  not (if 1->2 or 2->3 or 2->1)
+                    if  olddevicesCountTRUE != counter[homeAway]:
+                        props["devicesTrigger"]         = True 
+                        props["devicesTriggerTimeLast"] = props["devicesTriggerTime"]  # start the timer 
+                        props["devicesTriggerTime"]     = time.time()  # start the timer 
                 else:
                     pass
                 save = True
-                props["devicesCountOK"] = counter[homeAway]
+                props["devicesCountTRUELast"] = props["devicesCountTRUE"] 
+                props["devicesCountTRUE"] = counter[homeAway]
 
+
+                dTT_dLC =  props["devicesTriggerTime"] - doorsLastChange
+                dTW     = float(props["doorsTimeWindow"])
+      
                 ## ready to trigger?
-                if self.ML.decideMyLog(u"EVENTS"): 
+                if self.enableEventTracking or  self.ML.decideMyLog(u"EVENTS"): 
                     self.ML.myLog( text =""+
-                    " trigT: "           +unicode( triggerType ).ljust(14)+
-                    " devTrg "           +unicode( props["devicesTrigger"] ).ljust(5)+
-                    " alT:"              +unicode( oneAll == "all" and counter[homeAway] == len(devicesM) ).ljust(6)+
-                    " 1T:"               +unicode( oneAll == "one" and counter[homeAway] >= 1 and  oldDevicesCountOK == 0  ).ljust(6)+
-                    " devCteT:"          +unicode( oldDevicesCountOK != counter[homeAway] ).ljust(6)+
-                    " odC:"              +unicode( oldDevicesCountOK  ).ljust(2)+
-                    " devCtOK:%d"        %(props["devicesCountOK"])+
-                    " ct:"               +unicode(counter)+
-                    " Ndevs:%d"          %( len(devicesM) )+
-                    " t-devTrgT:%7.1f"   %(  min(time.time() - props["devicesTriggerTime"], 99999)  ) +
-                    " t-lstTrgT:%7.1f"   %(  min(time.time() - props["lastTriggerTime"]   , 99999)  )+
-                    " doorTWdow:"        +unicode( props["doorsTimeWindow"] ).rjust(4)  +
-                    " t-doorLstCh:%7.1f" %( min( abs( time.time() - doorsLastChange), 99999) )+
-                    " t-tTrig:%7.1f"     %( min( time.time() - props["lastTriggerTime"], 99999) )+
-                    "  ",mType= "updEVSt:"+EVENT.name )
- 
- 
-
+                    "trigTyp: "              +unicode( triggerType ).ljust(14)+
+                    ";  devTrig "            +unicode( props["devicesTrigger"] ).ljust(5)+
+                    ";  allT:"               +unicode( oneAll == "all" and counter[homeAway] == len(devicesM) )[0]+
+                    ";  1T:"                 +unicode( oneAll == "one" and counter[homeAway] >= 1 and  olddevicesCountTRUE == 0  )[0]+
+                    ";  olddevCtTRUE:"       +unicode( olddevicesCountTRUE ).ljust(2)+
+                    ";  countTRUE:"          +unicode(counter)+
+                    ";  Ndevs:%d"            %( len(devicesM) )+
+                    ";  devTrgT-tDoor:%6.1f" %(  min(dTT_dLC, 9999)  ) +
+                    ";  t-tTrg:%6.1f"        %(  min(time.time() - props["devicesTriggerTime"]   , 9999)  )+
+                    ";  t-tDoor:%6.1f"       %(  min(time.time() - doorsLastChange   , 9999)  )+
+                    ";  doorTWdow:%4d"       %( dTW )  +
+                    "",mType= "EV-"+source+":"+EVENT.name )
 
                 if props["devicesTrigger"]:
-                        ## first test if we should ignore , to often? 
-                        if (  time.time() - props["lastTriggerTime"] < float(props["minTimeTriggerBeforeRepeat"])  ):
-                                props["lastTriggerTime"] = 0
-                                props["devicesTrigger"]  = False
-                                save = True
-                        ##  do a delay 
-                        elif  ( time.time() - props["devicesTriggerTime"] < float(props["delayAfterDeviceTrigger"]) ): # requested a delay after trigger to allow a quick reset
-                                pass
-                        ## check for door window  !!! abs().. fward and bward
-                        elif( ( noDoors != "doors") or
-                              ( noDoors == "doors" and  ( abs( time.time() - doorsLastChange)         < float(props["doorsTimeWindow"]) ) )  ): 
-                                props["lastTriggerTime"] = time.time()
-                                props["devicesTrigger"]  = False
-                                EVENT.replacePluginPropsOnServer(props)
-                                save = False
-                                self.triggerEvent(EVENT.id,triggerType)
-                        ## wait with reject until window closes for new door, ie coming home pibeacon first then door open/close
-                        elif ( noDoors == "doors" and  (  ( time.time() - props["lastTriggerTime"])  > float(props["doorsTimeWindow"]) )  ): 
-                                props["lastTriggerTime"] = 0
-                                props["devicesTrigger"]  = False
-                                save = True
-                        else: ## should not happen .. reset 
-                                props["lastTriggerTime"] = 0
-                                props["devicesTrigger"]  = False
-                                save = True
+                    ## first test if we should ignore , to often? 
+                    if (  time.time() - props["triggerTimeLast"] < float(props["minTimeTriggerBeforeRepeat"])  ):
+                            props["devicesTrigger"]  = False
+                            save = True
+                    ##  do a delay 
+                    elif  ( time.time() - props["devicesTriggerTime"] < float(props["delayAfterDeviceTrigger"]) ): # requested a delay after trigger to allow a quick reset
+                            pass
+                    ## check for door window  !!! abs() for home , only going forward for going away 
+                    elif ( noDoors != "doors") or (
+                            ( noDoors == "doors") and  ( 
+                              (  homeAway =="home"  and ( abs(dTT_dLC) < dTW                      ) ) or      # for home use symetric window
+                              (  homeAway =="away"  and (    (dTT_dLC) < dTW  and dTT_dLC > 0     ) )   )  ): # for away use trailing window
+                            props["triggerTimeLast"] = time.time()
+                            props["devicesTrigger"]  = False
+                            EVENT.replacePluginPropsOnServer(props)
+                            save = False
+                            self.triggerEvent(EVENT.id,triggerType)
+                    ## wait with reject until window closes for new door, ie coming home pibeacon first then door open/close
+                    elif noDoors == "doors" and time.time() - props["devicesTriggerTime"]  > dTW:  ## everything is expired
+                            props["devicesTrigger"]      = False
+                            save = True
                         
                 if save: EVENT.replacePluginPropsOnServer(props)
      
@@ -1326,17 +1345,13 @@ you can use OneAway/Home or allAway/Home triggers for you or your family beacons
     ####-----------------  
     def triggerEvent(self, eventId, triggerType):
         try:
-            if (time.time - self.pluginStartTime) < self.waitAfterStartForFirstTrigger: return 
-            if self.ML.decideMyLog(u"EVENTS"): 
-                self.ML.myLog( text = u"triggerEvent: %s " % eventId)
+            if (time.time() - self.pluginStartTime) < self.waitAfterStartForFirstTrigger: return 
             for trigId in self.triggerList:
                 trigger = indigo.triggers[trigId]
-                if self.ML.decideMyLog(u"EVENTS"):
-                    self.ML.myLog( text =u"testing trigger/eventId id: "+ str(trigId).rjust(12)+" == "+ str(eventId).rjust(12)+" and trigTypes "+ unicode(triggerType)+" == "+ unicode(trigger.pluginTypeId)+" ?")
                 
                 if trigger.pluginTypeId == triggerType and trigId == eventId:
                     if self.ML.decideMyLog(u"EVENTS"):
-                        self.ML.myLog( text =u"firing trigger id : "+ str(trigId))
+                        self.ML.myLog( text =u"trigger/eventId id: "+ str(trigId).rjust(12)+" == "+ str(eventId).rjust(12)+" and trigTypes "+ unicode(triggerType)+" == "+ unicode(trigger.pluginTypeId))
                     indigo.trigger.execute(trigger)
                     break
         except Exception, e:
@@ -1496,6 +1511,9 @@ you can use OneAway/Home or allAway/Home triggers for you or your family beacons
                     self.ML.myLog( text =" saveDOORS   error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
         return 
     ####-----------------    ---------
+    def fixEVprops(self):
+        return 
+
     ####----Doors READ / SAVE     ---------
     def readDOORS(self):
         self.DOORS  = {}
