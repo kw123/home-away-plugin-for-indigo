@@ -25,10 +25,10 @@ Type = homeAway
 Event = All/One Device(s) must be ... home /Away
 you can use OneAway/Home or allAway/Home triggers for you or your family iBeacons/ iPhones  
 3. ====== initial setup =======   
---0. in config set basic parameters like repeat times, variables names, debug levels
---1. define the plugins that participate(Broadcast)  (menu)
---2. define the ON/off devices (menu) from these plugins you want to use
---3. define the DOOR type devices (menu) from any ON/off device
---4. Create a Trigger using the plugin configured EVENTS/events and subtypes (one/all/ home/away door/noDoor.. ) that can use one or many of the above defined devices to trigger actions
+--0. in config set basic parameters like repeat times, variables names, debug levels  
+--1. define the plugins that participate(Broadcast)  (menu)  
+--2. define the ON/off devices (menu) from these plugins you want to use  
+--3. define the DOOR type devices (menu) from any ON/off device  
+--4. Create a Trigger using the plugin configured EVENTS/events and subtypes (one/all/ home/away door/noDoor.. ) that can use one or many of the above defined devices to trigger actions  
 
 
