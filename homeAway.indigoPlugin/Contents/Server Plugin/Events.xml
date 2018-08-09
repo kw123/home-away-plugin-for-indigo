@@ -4,38 +4,47 @@
         <Name>At least ONE Device must be HOME</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
-                <Label>message from plugin:</Label>
+                <Label>Message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
-                <Label>min time between Trigger Repeat:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
+                <Label>Min time between two Triggers:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
-                <Label>delay after devices triggered:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+    the trigger will stay active for the period of time. if nothing happens the trigger will fire
+    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
+                <Label>Delay after devices triggered:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
+            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="" >
+                <List>
+                    <Option value="0-1"     >0 to 1 device at home </Option>
+                    <Option value="2-1"     >2 to 1 device at home </Option>
+                    <Option value="2-1/0-1" >both, 0 to 1 and 2 to 1 devices at home</Option>
+                </List>
+                <Label>At least one means</Label>
+            </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
             <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
-                    <Option value="existing" >edit existing </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
             <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>add new Devices:</Label>
+                <Label>Add new Devices:</Label>
                 <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
@@ -47,10 +56,7 @@
                 <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
             </Field>
 
-
             <Field    id="break3" type="label" defaultValue=""> </Field>
-
-
 
         </ConfigUI>
     </Event>
@@ -58,38 +64,38 @@
         <Name>ALL Devices must be HOME</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
-                <Label>message from plugin:</Label>
+                <Label>Message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
-                <Label>min time between Trigger Repeat:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
+                <Label>Min time between two Triggers:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
-                <Label>delay after devices triggered:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+    the trigger will stay active for the period of time. if nothing happens the trigger will fire
+    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
+                <Label>Delay after devices triggered:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
-
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
             <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
-                    <Option value="existing" >edit existing </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
             <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>add new Devices:</Label>
+                <Label>Add new Devices:</Label>
                 <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
@@ -101,45 +107,53 @@
                 <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
             </Field>
 
-
         </ConfigUI>
     </Event>
     <Event id="one-away-no">
         <Name>At least ONE Device must be AWAY</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
-                <Label>message from plugin:</Label>
+                <Label>Message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
-                <Label>min time between Trigger Repeat:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
+                <Label>Min time between two Triggers:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
-                <Label>delay after devices triggered:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+    the trigger will stay active for the period of time. if nothing happens the trigger will fire
+    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
+                <Label>Delay after devices triggered:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
+            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="this option defines the transition used eitehr going from 0 to 1 device or from 2 devices to 1 triggers the event" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <List>
+                    <Option value="0-1"     >0 to 1 device away </Option>
+                    <Option value="2-1"     >2 to 1 device away </Option>
+                    <Option value="2-1/0-1" >both, 0 to 1 and 2 to 1 devices away</Option>
+                </List>
+                <Label>At least one means:</Label>
+            </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
             <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
-                    <Option value="existing" >edit existing </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
             <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>add new Devices:</Label>
+                <Label>Add new Devices:</Label>
                 <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
@@ -156,24 +170,25 @@
         <Name>ALL Devices must be AWAY </Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
-                <Label>message from plugin:</Label>
+                <Label>Message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
-                <Label>min time between Trigger Repeat:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
+                <Label>Min time between two Triggers:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
-                <Label>delay after devices triggered:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+    the trigger will stay active for the period of time. if nothing happens the trigger will fire
+    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
+                <Label>Delay after devices triggered:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
-
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
             <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="existing" >edit existing </Option>
@@ -182,12 +197,12 @@
             </Field>
 
             <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>add new Devices:</Label>
+                <Label>Add new Devices:</Label>
                 <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
@@ -205,38 +220,47 @@
         <Name>At least ONE Device must be HOME with Door condition</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
-                <Label>message from plugin:</Label>
+                <Label>Message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
-                <Label>min time between Trigger Repeat:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
+                <Label>Min time between two Triggers:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
-                <Label>delay after devices triggered:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+    the trigger will stay active for the period of time. if nothing happens the trigger will fire
+    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
+                <Label>Delay after devices triggered:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
+            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="this option defines the transition used eitehr going from 0 to 1 device or from 2 devices to 1 triggers the event" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <List>
+                    <Option value="0-1"     >0 to 1 device at home </Option>
+                    <Option value="2-1"     >2 to 1 device at home </Option>
+                    <Option value="2-1/0-1" >both, 0 to 1 and 2 to 1 devices at home</Option>
+                </List>
+                <Label>At least one means:</Label>
+            </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
             <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
-                    <Option value="existing" >edit existing </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
             <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>add new Devices:</Label>
+                <Label>Add new Devices:</Label>
                 <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
@@ -248,12 +272,10 @@
                 <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
             </Field>
 
-
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
-
             <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
-                <Label>select doors in Event:</Label>
+                <Label>Select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="existing" >edit existing </Option>
@@ -262,21 +284,31 @@
             </Field>
 
             <Field     id="selectExistingDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="existing,delete" >
-                <Label>select Door:</Label>
+                <Label>Select Door:</Label>
                 <List class="self" filter="existing" method="filterDoorsEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="new" >
-                <Label>select Door:</Label>
+                <Label>Select Door:</Label>
                 <List class="self" filter="new" method="filterDoorsEvent"  dynamicReload="true"/>
             </Field>
 
             <Field    id="confirmRemoveDoor" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="delete" >
                 <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
             </Field>
+
             <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>time window for door-open event active:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+                <Label>Time window for door-open event active:</Label>
+                <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="doorsTimeWindowBeforeOrAfter" type="menu" defaultValue="After" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window for door-open gate to be active:</Label>
+                <List>
+                    <Option value="BeforeOrAfter"  >Devices can trigger before or after the door open/ closes</Option>
+                    <Option value="After"          >Devices MUST change up/down AFTER  door open/close</Option>
+                    <Option value="Before"         >Devices MUST change up/down BEFORE door open/close</Option>
+                </List>
             </Field>
 
             <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
@@ -290,38 +322,38 @@
         <Name>ALL Devices must be HOME with Door condition</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
-                <Label>message from plugin:</Label>
+                <Label>Message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
-                <Label>min time between Trigger Repeat:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
+                <Label>Min time between two Triggers:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
-                <Label>delay after devices triggered:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+    the trigger will stay active for the period of time. if nothing happens the trigger will fire
+    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
+                <Label>Delay after devices triggered:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
-
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
             <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
-                    <Option value="existing" >edit existing </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
             <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>add new Devices:</Label>
+                <Label>Add new Devices:</Label>
                 <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
@@ -333,12 +365,10 @@
                 <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
             </Field>
 
-
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
-
             <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
-                <Label>select doors in Event:</Label>
+                <Label>Select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="existing" >edit existing </Option>
@@ -347,21 +377,31 @@
             </Field>
 
             <Field     id="selectExistingDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="existing,delete" >
-                <Label>select Door:</Label>
+                <Label>Select Door:</Label>
                 <List class="self" filter="existing" method="filterDoorsEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="new" >
-                <Label>select Door:</Label>
+                <Label>Select Door:</Label>
                 <List class="self" filter="new" method="filterDoorsEvent"  dynamicReload="true"/>
             </Field>
 
             <Field    id="confirmRemoveDoor" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="delete" >
                 <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
             </Field>
+
             <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>time window for door-open event active:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+                <Label>Time window for door-open event active:</Label>
+                <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="doorsTimeWindowBeforeOrAfter" type="menu" defaultValue="After" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window for door-open gate to be active:</Label>
+                <List>
+                    <Option value="BeforeOrAfter"  >Devices can trigger before or after the door open/ closes</Option>
+                    <Option value="After"          >Devices MUST change up/down AFTER  door open/close</Option>
+                    <Option value="Before"         >Devices MUST change up/down BEFORE door open/close</Option>
+                </List>
             </Field>
 
             <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
@@ -375,38 +415,47 @@
         <Name>At least ONE Device must be AWAY with Door condition</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
-                <Label>message from plugin:</Label>
+                <Label>Message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
-                <Label>min time between Trigger Repeat:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
+                <Label>Min time between two Triggers:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
-                <Label>delay after devices triggered:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+    the trigger will stay active for the period of time. if nothing happens the trigger will fire
+    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
+                <Label>Delay after devices triggered:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
+            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="this option defines the transition used eitehr going from 0 to 1 device or from 2 devices to 1 triggers the event" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+                <List>
+                    <Option value="0-1"     >0 to 1 device away </Option>
+                    <Option value="2-1"     >2 to 1 device away </Option>
+                    <Option value="2-1/0-1" >both, 0 to 1 and 2 to 1 devices away</Option>
+                </List>
+                <Label>At least one means:</Label>
+            </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
             <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
-                    <Option value="existing" >edit existing </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
             <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>add new Devices:</Label>
+                <Label>Add new Devices:</Label>
                 <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
@@ -418,12 +467,10 @@
                 <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
             </Field>
 
-
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
-
             <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
-                <Label>select doors in Event:</Label>
+                <Label>Select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="existing" >edit existing </Option>
@@ -432,21 +479,31 @@
             </Field>
 
             <Field     id="selectExistingDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="existing,delete" >
-                <Label>select Door:</Label>
+                <Label>Select Door:</Label>
                 <List class="self" filter="existing" method="filterDoorsEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="new" >
-                <Label>select Door:</Label>
+                <Label>Select Door:</Label>
                 <List class="self" filter="new" method="filterDoorsEvent"  dynamicReload="true"/>
             </Field>
 
             <Field    id="confirmRemoveDoor" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="delete" >
                 <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
             </Field>
+
             <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>time window for door-open event active:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+                <Label>Time window for door-open event active:</Label>
+                <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="doorsTimeWindowBeforeOrAfter" type="menu" defaultValue="After" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window for door-open gate to be active:</Label>
+                <List>
+                    <Option value="BeforeOrAfter"  >Devices can trigger before or after the door open/ closes</Option>
+                    <Option value="After"          >Devices MUST change up/down AFTER  door open/close</Option>
+                    <Option value="Before"         >Devices MUST change up/down BEFORE door open/close</Option>
+                </List>
             </Field>
 
             <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
@@ -460,38 +517,38 @@
         <Name>ALL Devices must be AWAY with Door condition</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
-                <Label>message from plugin:</Label>
+                <Label>Message from plugin:</Label>
             </Field>
 
-            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto" >
-                <Label>min time between Trigger Repeat:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
+                <Label>Min time between two Triggers:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on" >
-                <Label>delay after devices triggered:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+    the trigger will stay active for the period of time. if nothing happens the trigger will fire
+    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
+                <Label>Delay after devices triggered:</Label>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
-
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
 
             <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
-                    <Option value="existing" >edit existing </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
             <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>select devices in Event:</Label>
+                <Label>Select devices in Event:</Label>
                 <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>add new Devices:</Label>
+                <Label>Add new Devices:</Label>
                 <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
             </Field>
 
@@ -503,12 +560,10 @@
                 <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
             </Field>
 
-
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
-
             <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
-                <Label>select doors in Event:</Label>
+                <Label>Select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="existing" >edit existing </Option>
@@ -517,21 +572,31 @@
             </Field>
 
             <Field     id="selectExistingDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="existing,delete" >
-                <Label>select Door:</Label>
+                <Label>Select Door:</Label>
                 <List class="self" filter="existing" method="filterDoorsEvent"  dynamicReload="true"/>
             </Field>
 
             <Field     id="selectNewDoor" type="menu" defaultValue=""  visibleBindingId="newOrExistingDoor" visibleBindingValue="new" >
-                <Label>select Door:</Label>
+                <Label>Select Door:</Label>
                 <List class="self" filter="new" method="filterDoorsEvent"  dynamicReload="true"/>
             </Field>
 
             <Field    id="confirmRemoveDoor" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="delete" >
                 <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
             </Field>
-            <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>time window for door-open event active:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+
+            <Field    id="doorsTimeWindow" type="menu" defaultValue="90" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window for door-open event active:</Label>
+                <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="doorsTimeWindowBeforeOrAfter" type="menu" defaultValue="After" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window for door-open gate to be active:</Label>
+                <List>
+                    <Option value="BeforeOrAfter"  >Devices can trigger before or after the door open/ closes</Option>
+                    <Option value="After"          >Devices MUST change up/down AFTER  door open/close</Option>
+                    <Option value="Before"         >Devices MUST change up/down BEFORE door open/close</Option>
+                </List>
             </Field>
 
             <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >

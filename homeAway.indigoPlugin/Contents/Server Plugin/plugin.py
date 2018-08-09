@@ -116,7 +116,7 @@ class Plugin(indigo.PluginBase):
         self.acceptableStateValues  = ["up","down","expired","on","off","yes","no","true","false","t","f","1","0","ja","nein","an","aus","open","closed","auf","zu"]
         self.emptyDEVICE            = {"up":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"down":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"valueForON":"","pluginId":"","name":"","used":False}
         self.emptyDOOR              = {"lastChange":0,"lastChangeDT":"","signalReceived":"","state":"","name":"","used":False,"requireStatusChange":True,"pollingIntervall":10,"lastCheck":0}
-        self.evPropsToPrint         = ["devicesMembers","devicesCountTRUE","devicesCountTRUELast","devicesTrigger","devicesTriggerTime","doorsMembers","doorsTimeWindow","triggerTimeLast","minTimeTriggerBeforeRepeat","delayAfterDeviceTrigger"]
+        self.evPropsToPrint         = ["devicesMembers","devicesCountTRUE","devicesTrigger","devicesTriggerTime","doorsMembers","doorsTimeWindow","atleastOne","triggerTimeLast","minTimeTriggerBeforeRepeat","delayAfterDeviceTrigger","doorsTimeWindowBeforeOrAfter"]
 
         self.PLUGINS                ={"excluded":{},"acceptable":{},"used":{},"all":{}}
         for item in ["com.perceptiveautomation.indigoplugin.zwave","com.karlwachs.utilities","com.karlwachs.INDIGOplotD","com.ssi.indigoplugin.SONOS",\
@@ -168,27 +168,30 @@ class Plugin(indigo.PluginBase):
             valuesDict["homeAway"]              = typeIdSplit[1]
             valuesDict["noDoors"]               = typeIdSplit[2]
             
-            valuesDict["doorsMembers"]          = "[]"
-            valuesDict["devicesMembers"]        = "[]"
-            valuesDict["triggerTimeLast"]       = 0 
-            valuesDict["devicesTrigger"]        = False
-            valuesDict["devicesTriggerTime"]    = 0
-            valuesDict["devicesCountTRUE"]      = 0
-            valuesDict["devicesCountTRUELast"]  = 0
-            valuesDict["newOrExistingDevice"]   = "new"
-            valuesDict["newOrExistingDoor"]     = "new"
-            valuesDict["doorsTimeWindow"]       = 300
-            self.devicesMembers =[]
-            self.doorsMembers =[]
+            valuesDict["doorsMembers"]                  = ""
+            valuesDict["devicesMembers"]                = ""
+            valuesDict["triggerTimeLast"]               = 0 
+            valuesDict["devicesTrigger"]                = False
+            valuesDict["devicesTriggerTime"]            = 0
+            valuesDict["devicesCountTRUE"]              = 0
+            valuesDict["newOrExistingDevice"]           = "new"
+            valuesDict["newOrExistingDoor"]             = "new"
+            valuesDict["doorsTimeWindow"]               = "300"
+            valuesDict["doorsTimeWindowBeforeOrAfter"]  = "After"
+            valuesDict["atleastOne"]                    = "2-1/0-1"
+            valuesDict["lastDoorChange"]                = 0
+                        
+            self.devicesMembers ={}
+            self.doorsMembers ={}
         else:
-            valuesDict["oneAll"]                = typeIdSplit[0]
-            valuesDict["homeAway"]              = typeIdSplit[1]
-            valuesDict["noDoors"]               = typeIdSplit[2]
-            self.devicesMembers = json.loads(valuesDict["devicesMembers"])
-            self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(self.devicesMembers, valuesDict["devicesMembers"])
+            if "lastDoorChange" not in valuesDicct:
+                valuesDict["lastDoorChange"]            = 0
+            valuesDict["oneAll"]                        = typeIdSplit[0]
+            valuesDict["homeAway"]                      = typeIdSplit[1]
+            valuesDict["noDoors"]                       = typeIdSplit[2]
+            self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(json.loads(valuesDict["devicesMembers"]))
 
-            self.doorsMembers   = json.loads(valuesDict["doorsMembers"])
-            self.doorsMembers, valuesDict["doorsMembers"] = self.fixDICTEmpty(self.doorsMembers, valuesDict["doorsMembers"])
+            self.doorsMembers,   valuesDict["doorsMembers"]   = self.fixDICTEmpty(json.loads(valuesDict["doorsMembers"]))
 
         if typeIdSplit[2] == "no":
             valuesDict["newOrExistingDoor"]   = "no"
@@ -197,10 +200,10 @@ class Plugin(indigo.PluginBase):
 
  
     # event menus
-    def fixDICTEmpty(self,  D1,VD):
+    def fixDICTEmpty(self,  D1):
         if "" in D1:
-            D1.remove("")
-            VD = json.dumps(D1)
+            del D1[""]
+        VD = json.dumps(D1)
         return D1, VD
  
  
@@ -224,7 +227,7 @@ class Plugin(indigo.PluginBase):
                     xList.append(( DEVICEid, self.DEVICES[DEVICEid]["name"]+"-"+DEVICEid.split(":::")[1] ))
 
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "filterDevicesEvent    xList "+ str(xList) )
+            self.ML.myLog(text = "xList "+ str(xList), mType="filterDevicesEvent" )
         return xList
 
 
@@ -234,9 +237,8 @@ class Plugin(indigo.PluginBase):
             if valuesDict["newOrExistingDevice"] !="delete": return 
             if len(valuesDict["selectExistingDevice"]) > 5:
                 if valuesDict["selectExistingDevice"] in self.devicesMembers:
-                    self.devicesMembers.remove(valuesDict["selectExistingDevice"])
-                    valuesDict["devicesMembers"] = json.dumps(self.devicesMembers)
-                    self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(self.devicesMembers, valuesDict["devicesMembers"])
+                    del self.devicesMembers[valuesDict["selectExistingDevice"]]
+                    self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(self.devicesMembers)
         except Exception, e:
             self.ML.myLog( text =u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
         return valuesDict
@@ -244,16 +246,10 @@ class Plugin(indigo.PluginBase):
     ####-----------------  ---------
     def buttonConfirmDeviceSettingsCALLBACK(self, valuesDict, typeId, devId):
         valuesDict["msg"]                       = "settings saved"
-        if valuesDict["newOrExistingDevice"] =="new":   
+        if valuesDict["newOrExistingDevice"] in ["new","existing"]:   
             if valuesDict["selectNewDevice"] not in self.devicesMembers:
-                self.devicesMembers.append(valuesDict["selectNewDevice"])
-                valuesDict["devicesMembers"] = json.dumps(self.devicesMembers)
-                self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(self.devicesMembers, valuesDict["devicesMembers"])
-        elif valuesDict["newOrExistingDevice"] == "existing":   
-            if valuesDict["selectExistingDevice"] not in self.devicesMembers:
-                self.devicesMembers.append(valuesDict["selectExistingDevice"])
-                valuesDict["devicesMembers"] = json.dumps(self.devicesMembers)
-                self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(self.devicesMembers, valuesDict["devicesMembers"])
+                self.devicesMembers[valuesDict["selectNewDevice"]] =""
+                self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(self.devicesMembers)
         else:
             valuesDict["msg"]                       = "error"
         return valuesDict
@@ -265,7 +261,7 @@ class Plugin(indigo.PluginBase):
         try:
             xList =[]
             if self.ML.decideMyLog(u"SETUP"): 
-                self.ML.myLog(text = "filterDoorsEvent:  typeId: "+ unicode(typeId)+"  targetId:"+ unicode(targetId)+"  valuesDict:"+unicode(valuesDict))
+                self.ML.myLog(text = "typeId: "+ unicode(typeId)+"  targetId:"+ unicode(targetId)+"  valuesDict:"+unicode(valuesDict), mType="filterDoorsEvent")
             if len(valuesDict) == 0: 
                 #indigo.server.log("filterDoorsInEvent:  vd empty returning")
                 return xList
@@ -284,7 +280,7 @@ class Plugin(indigo.PluginBase):
             if self.ML.decideMyLog(u"SETUP"): 
                 self.ML.myLog(text = "filterDoorsEvent    xList "+ str(xList) )
         except Exception, e:
-            self.ML.myLog( text =u"filterDoorsEvente rror in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+            self.ML.myLog( text =u"filterDoorsEvent error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
             self.ML.myLog( text =u"filterDoorsEvent doorsMembers: "+unicode(self.doorsMembers) )
         return xList
 
@@ -293,9 +289,8 @@ class Plugin(indigo.PluginBase):
         try:
             if valuesDict["newOrExistingDoor"] !="delete": return 
             if valuesDict["selectExistingDoor"] in self.doorsMembers:
-                self.doorsMembers.remove(valuesDict["selectExistingDoor"])
-                valuesDict["doorsMembers"] = json.dumps(self.doorsMembers)
-                self.doorsMembers, valuesDict["doorsMembers"] = self.fixDICTEmpty(self.doorsMembers, valuesDict["doorsMembers"])
+                del self.doorsMembers[valuesDict["selectExistingDoor"]]
+                self.doorsMembers, valuesDict["doorsMembers"] = self.fixDICTEmpty(self.doorsMembers)
         except Exception, e:
             self.ML.myLog( text =u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
         return valuesDict
@@ -306,20 +301,18 @@ class Plugin(indigo.PluginBase):
 
         if valuesDict["newOrExistingDoor"] =="new":
             if valuesDict["selectNewDoor"] not in self.doorsMembers:
-                self.doorsMembers.append(valuesDict["selectNewDoor"])
-                valuesDict["doorsMembers"] = json.dumps(self.doorsMembers)
-                self.doorsMembers, valuesDict["doorsMembers"] = self.fixDICTEmpty(self.doorsMembers, valuesDict["doorsMembers"])
+                self.doorsMembers[valuesDict["selectNewDoor"]]=""
+                self.doorsMembers, valuesDict["doorsMembers"] = self.fixDICTEmpty(self.doorsMembers)
 
         elif valuesDict["newOrExistingDoor"] =="existing":
             if valuesDict["selectNewDoor"] not in self.doorsMembers:
-                self.doorsMembers.append(valuesDict["selectNewDoor"])
-                valuesDict["doorsMembers"] = json.dumps(self.doorsMembers)
-                self.doorsMembers, valuesDict["doorsMembers"] = self.fixDICTEmpty(self.doorsMembers, valuesDict["doorsMembers"])
+                self.doorsMembers[valuesDict["selectNewDoor"]]=""
+                self.doorsMembers, valuesDict["doorsMembers"] = self.fixDICTEmpty(self.doorsMembers)
         else:
             valuesDict["msg"]                       = "error"
 
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmDoorsSettingsCALLBACK  "+ unicode(valuesDict))
+            self.ML.myLog(text = unicode(valuesDict), mType="butConfirmDoorsSettings")
 
         return valuesDict
 
@@ -371,7 +364,7 @@ class Plugin(indigo.PluginBase):
  
         self.PluginSelected = valuesDict["selectedExistingOrNewPlugin"]
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmExistingOrNewPluginCALLBACK    IndigoID "+ self.PluginSelected +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "IndigoID "+ self.PluginSelected +"  "+unicode(valuesDict), mType="butConfirmExistingOrNewPlugin")
         valuesDict["text0-1"]              = "  and then confirm !"
 
         try:
@@ -391,7 +384,7 @@ class Plugin(indigo.PluginBase):
     def buttonConfirmDeletePluginCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmDeletePluginCALLBACK    pluginid  "+ str(self.PluginSelected) +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "pluginid  "+ str(self.PluginSelected) +"  "+unicode(valuesDict), mType="butConfirmDeletePlugin")
         valuesDict["DefinePluginsAndNew"]  = False
         valuesDict["DefinePluginsAndOld"]  = False
 
@@ -414,7 +407,7 @@ class Plugin(indigo.PluginBase):
     def buttonConfirmPluginNewCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-           self.ML.myLog(text = "buttonConfirmExistingPluginCALLBACK    IndigoID "+ self.PluginSelected +"  "+unicode(valuesDict))
+           self.ML.myLog(text = "IndigoID "+ self.PluginSelected +"  "+unicode(valuesDict), mType="butConfirmExistingPlugin")
         self.PluginSelected = valuesDict["selectedNewPluginID"]
         try:
             if self.PluginSelected !="0":
@@ -493,7 +486,8 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
         self.ML.myLog(text ="ev id: "+ unicode(item.id).ljust(12)+ "; ev Type: "+item.pluginTypeId +" ==== EVENT",mType=item.name+"==")
         for prop in self.evPropsToPrint:
             if prop not in props: continue
-            self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(props[prop]),mType="EVENTS")
+            out = prop.ljust(30)+ ": "+ unicode(props[prop])
+            self.ML.myLog(text = out,mType="EVENTS")
         return valuesDict
 
 
@@ -508,7 +502,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
 
 
     def printDOORS(self,valuesDict,typeId):
-        propsToPrint =["lastChange","lastChangeDT","signalReceived","state","used","requireStatusChange","pollingIntervall","lastCheck"]
+        propsToPrint =["lastM1Change","lastChange","lastChangeDT","signalReceived","state","used","requireStatusChange","pollingIntervall","lastCheck"]
         self.ML.myLog(text =" ==== DOORs ============ ")
         for DEVICEid in self.DOORS:
             self.ML.myLog(text ="ID: "+DEVICEid.split(":::")[0].ljust(12)+";  state: "+DEVICEid.split(":::")[1].ljust(15)+" ==== DOOR",mType=self.DOORS[DEVICEid]["name"]+"==")
@@ -585,7 +579,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
  
         self.DeviceSelected = valuesDict["selectedExistingOrNewDevice"]
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmExistingOrNewDeviceCALLBACK    IndigoID "+ self.DeviceSelected +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "IndigoID "+ self.DeviceSelected +"  "+unicode(valuesDict), mType="butConfirmExistingOrNewDevice")
         valuesDict["selectStatesOK"]       = False
         valuesDict["text1-1"]              = "  and then confirm !"
         valuesDict["text1-2"]              = "  and then confirm !"
@@ -610,7 +604,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def buttonConfirmDeleteDeviceCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmDeleteDeviceCALLBACK    IndigoID "+ str(self.DeviceSelected) +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "IndigoID "+ str(self.DeviceSelected) +"  "+unicode(valuesDict), mType="butConfirmDeleteDevice")
         valuesDict["DefineDevicesAndNew"]  = False
         valuesDict["DefineDevicesAndOld"]  = False
         valuesDict["selectStatesOK"]       = False
@@ -635,7 +629,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def buttonConfirmDeviceNewCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmExistingDeviceCALLBACK    IndigoID "+ self.DeviceSelected +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "IndigoID "+ self.DeviceSelected +"  "+unicode(valuesDict), mType="butConfirmExistingDevice")
         self.DeviceSelected = valuesDict["selectedNewDeviceID"]
         valuesDict["selectStatesOK"]       = False
         valuesDict["DefineDevicesAndNew"]  = False
@@ -696,7 +690,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def buttonConfirmStateCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmStateCALLBACK    IndigoID "+ str(self.DeviceSelected) +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "IndigoID "+ str(self.DeviceSelected) +"  "+unicode(valuesDict), mType="butConfirmState")
         valuesDict["selectStatesOK"]       = False
         valuesDict["DefineDevicesAndNew"]  = False
         valuesDict["DefineDevicesAndOld"]  = False
@@ -779,7 +773,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
  
         self.DoorSelected = valuesDict["selectedExistingOrNewDoor"]
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmExistingOrNewDoorCALLBACK    IndigoID "+ self.DoorSelected +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "IndigoID "+ self.DoorSelected +"  "+unicode(valuesDict), mType ="butConfirmExistingOrNewDoor")
         valuesDict["selectStatesOK"]       = False
         valuesDict["text1-1"]              = "  and then confirm !"
         valuesDict["text1-2"]              = "  and then confirm !"
@@ -804,7 +798,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def buttonConfirmDeleteDoorCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmDeleteDoorCALLBACK    IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict), mType ="butConfirmDeleteDoor")
         valuesDict["DefineDoorsAndNew"]   = False
         valuesDict["DefineDoorsAndOld"]   = False
         valuesDict["selectDoorsStatesOK"] = False
@@ -829,7 +823,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def buttonConfirmDoorNewCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmExistingDoorCALLBACK    IndigoID "+ self.DoorSelected +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "IndigoID "+ self.DoorSelected +"  "+unicode(valuesDict), mType ="butConfirmExistingDoor")
         self.DoorSelected = valuesDict["selectedNewDoorID"]
         valuesDict["selectDoorsStatesOK"] = False
         valuesDict["DefineDoorsAndNew"]   = False
@@ -890,7 +884,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def buttonConfirmDoorStateCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "buttonConfirmDoorStateCALLBACK    IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict))
+            self.ML.myLog(text = "IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict), mtype="butConfirmDoorState"    )
         valuesDict["selectDoorsStatesOK"]  = False
         valuesDict["DefineDoorAndNew"]     = False
         valuesDict["DefineDoorAndOld"]     = False
@@ -999,12 +993,13 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                 newST = dev.states[devState[1]]
                 UP = (unicode(newST) == self.DEVICES[DEVICEid]["valueForON"])
                 
-                if self.ML.decideMyLog(u"SETUP"): 
+                if self.enableEventTracking or self.ML.decideMyLog(u"SETUP"): 
                     self.ML.myLog(text = "getDEVICEstates    DEVICEid "+DEVICEid.ljust(20)+"  lastDT:"+unicode(lastChangedDT) +"   "+
                     unicode(int(lastChanged)) +" == last  "+unicode(int(self.DEVICES[DEVICEid]["up"]["lastChange"]))+"  "+
                     " delta  "+unicode(int(lastChanged - self.DEVICES[DEVICEid]["up"]["lastChange"])).rjust(10)+"  "+
                     "; ex-Tf: "+ unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"]) +
-                    "; upd?: "+unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"] != UP )  )
+                    "; upd?: "+unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"] != UP ) +
+                    "", mType = "getDEVICEstates" )
 
                 if  (  self.DEVICES[DEVICEid]["up"]["signalReceived"]   != UP):  
                     self.DEVICES[DEVICEid]["up"]["lastChange"]          = lastChanged
@@ -1038,17 +1033,26 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                 newST = dev.states[devState[1]]
                 lastChangedDT = dev.lastChanged
                 lastChanged = time.mktime(lastChangedDT.timetuple())
-                if self.ML.decideMyLog(u"DOORS"): 
-                    self.ML.myLog(text = "getDOORstates    DEVICEid: "+DEVICEid.ljust(20)+ str(lastChangedDT) +" == lastDT  "+unicode(self.DOORS[DEVICEid]["lastChangeDT"])+"  "+
-                    unicode(int(lastChanged)) +" == last  "+unicode(int(self.DOORS[DEVICEid]["lastChange"]))+"  "+
-                    "; delta: "+unicode(int(lastChanged - self.DOORS[DEVICEid]["lastChange"])).rjust(10)+
-                    ";  st curr "+ unicode(self.DOORS[DEVICEid]["signalReceived"]) +" == new: "+unicode(newST) )
 
-                if  (lastChanged != self.DOORS[DEVICEid]["lastChange"] ) and (
-                      (      self.DOORS[DEVICEid]["requireStatusChange"] and  unicode(newST) != self.DOORS[DEVICEid]["signalReceived"] ) or
-                      (  not self.DOORS[DEVICEid]["requireStatusChange"]                                                                                                   )     ):
-                    self.DOORS[DEVICEid]["lastChange"]   = lastChanged
-                    self.DOORS[DEVICEid]["lastChangeDT"] = lastChangedDT.strftime(u"%Y-%m-%d %H:%M:%S")
+                if  (   
+                        (lastChanged != self.DOORS[DEVICEid]["lastChange"] ) 
+                        and 
+                        (
+                            (      self.DOORS[DEVICEid]["requireStatusChange"] and  unicode(newST) != self.DOORS[DEVICEid]["signalReceived"] ) 
+                            or
+                            (  not self.DOORS[DEVICEid]["requireStatusChange"] )                                                 
+                                                                                  
+                        )
+                    ):
+                    if self.enableEventTracking or self.ML.decideMyLog(u"DOORS") : 
+                        self.ML.myLog(text = "getDOORstates    DEVICEid: "+DEVICEid.ljust(20)+ str(lastChangedDT) +" == lastDT  "+unicode(self.DOORS[DEVICEid]["lastChangeDT"])+"  "+
+                        unicode(int(lastChanged)) +" == last  "+unicode(int(self.DOORS[DEVICEid]["lastChange"]))+"  "+
+                        "; delta: "+unicode(int(lastChanged - self.DOORS[DEVICEid]["lastChange"])).rjust(10)+
+                        ";  st curr "+ unicode(self.DOORS[DEVICEid]["signalReceived"]) +" == new: "+unicode(newST) +
+                        "", mType = "getDOORstates" )
+                    self.DOORS[DEVICEid]["lastM1Change"]   = self.DOORS[DEVICEid]["lastChange"]
+                    self.DOORS[DEVICEid]["lastChange"]     = lastChanged
+                    self.DOORS[DEVICEid]["lastChangeDT"]   = lastChangedDT.strftime(u"%Y-%m-%d %H:%M:%S")
                     self.DOORS[DEVICEid]["signalReceived"] = unicode(dev.states[self.DOORS[DEVICEid]["state"]])
                     update= True
                 self.DOORS[DEVICEid]["lastCheck"] = time.time()
@@ -1074,10 +1078,10 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
 
         try:
             if self.ML.decideMyLog(u"RECEIVE") and False: 
-                self.ML.myLog( text = "receiveDeviceChanged: "+ unicode(MSG) )
+                self.ML.myLog( text = unicode(MSG), mType="receiveDeviceChanged" )
             if "data" not in MSG: 
-                if self.ML.decideMyLog(u"RECEIVE"): 
-                    self.ML.myLog( text = "receiveDeviceChanged:  bad data received, not data element in dict "+ unicode(MSG) )
+                if self.ML.decideMyLog(u"RECEIVE") : 
+                    self.ML.myLog( text = "bad data received, not data element in dict "+ unicode(MSG), mType="receiveDeviceChanged" )
                 return
                 
             data = MSG["data"]
@@ -1090,29 +1094,27 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                     
                 if "newValue"   not in msg: 
                     if self.ML.decideMyLog(u"RECEIVE"): 
-                        self.ML.myLog( text = "receiveDeviceChanged: msg no  newValue" )
+                        self.ML.myLog( text = "msg no  newValue", mType="receiveDeviceChanged" )
                     continue
                 if "valueForON" not in msg: 
                     if self.ML.decideMyLog(u"RECEIVE"): 
-                        self.ML.myLog( text = "receiveDeviceChanged: msg no  valueForON" )
+                        self.ML.myLog( text = "msg no  valueForON", mType="receiveDeviceChanged" )
                     continue
                 if "action"     not in msg: 
                     if self.ML.decideMyLog(u"RECEIVE"): 
-                        self.ML.myLog( text = "receiveDeviceChanged: msg no  action" )
+                        self.ML.myLog( text = "msg no  action", mType="receiveDeviceChanged" )
                     continue
                 if "state"     not in msg: 
                     if self.ML.decideMyLog(u"RECEIVE"): 
-                        self.ML.myLog( text = "receiveDeviceChanged: msg no  state" )
+                        self.ML.myLog( text = "msg no  state", mType="receiveDeviceChanged" )
                     continue
 
                 if msg["action"] == "event":
                     DEVICEid= str(msg["id"]) +":::"+ msg["state"]
-                    if self.ML.decideMyLog(u"RECEIVE") and False: 
-                            self.ML.myLog( text = "receiveDeviceChanged: DEVICEid: "+DEVICEid )
 
                     if DEVICEid not in self.DEVICES: # check if device was ignored, add to the devices dict
                         if self.ML.decideMyLog(u"RECEIVE") and False: 
-                            self.ML.myLog( text = "receiveDeviceChanged: DEVICEid not in DEVICES, skip" )
+                            self.ML.myLog( text = "DEVICEid not in DEVICES, skip", mType="receiveDeviceChanged" )
                         if  self.autoAddDevices == "ON":
                             self.DEVICES[DEVICEid] = copy.copy(self.emptyDEVICE)
                             if ("name" not in msg or receivedPluginId =="" ) :
@@ -1128,15 +1130,15 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                             self.savePLUGINS()
                         continue
                     if self.ML.decideMyLog(u"RECEIVE"): 
-                        self.ML.myLog( text = "receiveDeviceChanged: msg:"+ str(msg) )
+                        self.ML.myLog( text = "msg:"+ str(msg) , mType="receiveDeviceChanged")
                     
                     self.DEVICES[DEVICEid]["valueForON"] = msg["valueForON"]
                     UP   = msg["newValue"] == msg["valueForON"]
                     UPnew   = self.DEVICES[DEVICEid]["up"]["signalReceived"]    != UP
                     DOWNnew = self.DEVICES[DEVICEid]["down"]["signalReceived"]  == UP
-                    save = False
-                    if self.ML.decideMyLog(u"RECEIVE"): 
-                            self.ML.myLog( text = "receiveDeviceChanged: DEVICEid:accepted.. UP " +unicode(UP) +"  UPnew "+unicode(UPnew) +"  DOWNnew "+unicode(DOWNnew))
+                    save = 0
+                    if self.enableEventTracking  or  self.ML.decideMyLog(u"RECEIVE") : 
+                            self.ML.myLog( text = "DEVICEid:accepted.. UP " +unicode(UP) +"  UPnew "+unicode(UPnew) +"  DOWNnew "+unicode(DOWNnew), mType="receiveDeviceChanged")
                     if UP:
                         if UPnew : 
                             if self.DEVICES[DEVICEid]["up"]["state"] != "home": 
@@ -1144,7 +1146,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                                 self.DEVICES[DEVICEid]["up"]["lastChange"] = time.time()
                                 upd = 2
                         if DOWNnew:
-                            save = True
+                            save = 1
                             if self.DEVICES[DEVICEid]["down"]["state"] != "": 
                                 upd = max(1,upd)
                                 self.DEVICES[DEVICEid]["down"]["state"] = ""
@@ -1154,7 +1156,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                     if not UP: 
                         if  UPnew : 
                             if self.DEVICES[DEVICEid]["up"]["state"] == "home": 
-                                save = True
+                                save +=2
                                 upd = max(1,upd)
                                 self.DEVICES[DEVICEid]["up"]["state"] = "triggeredDOWN"
                                 self.DEVICES[DEVICEid]["up"]["lastChange"] = time.time()
@@ -1162,19 +1164,19 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                     
                         if  DOWNnew: 
                             if self.DEVICES[DEVICEid]["down"]["state"] != "triggeredDOWN": 
-                                save = True
+                                save +=4
                                 upd = max(1,upd)
                                 self.DEVICES[DEVICEid]["down"]["state"] = "triggeredDOWN"
                                 self.DEVICES[DEVICEid]["down"]["lastChange"] = time.time()
                                 if self.DEVICES[DEVICEid]["up"]["delayTime"] == 0 or self.DEVICES[DEVICEid]["down"]["delayTime"] == 0 : upd = 2
 
-                    if self.DEVICES[DEVICEid]["up"]["signalReceived"]   != UP:  save = True
-                    if self.DEVICES[DEVICEid]["down"]["signalReceived"] == UP:  save = True
+                    if self.DEVICES[DEVICEid]["up"]["signalReceived"]   != UP:  save +=8
+                    if self.DEVICES[DEVICEid]["down"]["signalReceived"] == UP:  save +=16
                     self.DEVICES[DEVICEid]["up"]["signalReceived"]    = UP
                     self.DEVICES[DEVICEid]["down"]["signalReceived"]  = not UP
 
-                    if save or upd >0: self.saveDEVICES()
-                    if self.enableEventTracking or  self.ML.decideMyLog(u"RECEIVE"): 
+                    if save>0 or upd >0: self.saveDEVICES()
+                    if (self.enableEventTracking and save>0 ) or  self.ML.decideMyLog(u"RECEIVE") : 
                         dd = DEVICEid.split(":::")
                         self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
                     "; stateUP:"+self.DEVICES[DEVICEid]["up"]["state"].ljust(13)+
@@ -1183,6 +1185,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                     "; stateDN:"+self.DEVICES[DEVICEid]["down"]["state"].ljust(13)+
                     "; signRecDN:"+unicode(self.DEVICES[DEVICEid]["down"]["signalReceived"]).ljust(6)+
                     "; lChgDN:%6.1f"%(min(time.time()-self.DEVICES[DEVICEid]["down"]["lastChange"],9999))+
+                    "; save:%d"%(save)+
                     "",     mType="rcvBC:"+msg["name"])
                     self.updateDeviceStatus(DEVICEid,periodCheck="devChg", callEvent=(upd==2)) # set new status now 
         except Exception, e:
@@ -1198,20 +1201,22 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def updateDeviceStatus(self, DEVICEid, periodCheck="",callEvent=False):
         try:
             if DEVICEid not in self.DEVICES: return 
-            upd = False
+            save = 0
             if self.DEVICES[DEVICEid]["up"]["state"] == "triggeredDOWN": 
                 if time.time() - self.DEVICES[DEVICEid]["up"]["lastChange"] > self.DEVICES[DEVICEid]["up"]["delayTime"]: 
+                    self.DEVICES[DEVICEid]["up"]["lastChange"] = time.time() 
                     self.DEVICES[DEVICEid]["up"]["state"] = ""
-                upd = True        
+                save = 1        
 
             if self.DEVICES[DEVICEid]["down"]["state"] == "triggeredDOWN": 
-                if time.time() - self.DEVICES[DEVICEid]["down"]["lastChange"] > self.DEVICES[DEVICEid]["down"]["delayTime"]: 
+                if time.time() - self.DEVICES[DEVICEid]["down"]["lastChange"] > self.DEVICES[DEVICEid]["down"]["delayTime"]:
+                    self.DEVICES[DEVICEid]["down"]["lastChange"] = time.time() 
                     self.DEVICES[DEVICEid]["down"]["state"] = "away"
-                upd = True        
-            if upd or callEvent: 
+                save +=2        
+            if save or callEvent: 
                 self.saveDEVICES()
                 self.updateEVENTStatus(source=periodCheck)
-            if self.enableEventTracking or  self.ML.decideMyLog(u"RECEIVE"): 
+            if (self.enableEventTracking and save>0 ) or  self.ML.decideMyLog(u"RECEIVE") : 
                 dd = DEVICEid.split(":::")
                 self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
                     ";  stateUP:"+self.DEVICES[DEVICEid]["up"]["state"].ljust(13)+
@@ -1220,6 +1225,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                     ";  stateDN:"+self.DEVICES[DEVICEid]["down"]["state"].ljust(13)+
                     ";  signRecDN:"+unicode(self.DEVICES[DEVICEid]["down"]["signalReceived"])[0]+
                     ";  lChgDN:%5.1f"%(min(time.time()-self.DEVICES[DEVICEid]["down"]["lastChange"],999))+
+                    ";  save:%d"%(save)+
                     "",     mType="rcvBC:"+periodCheck)
 
         except  Exception, e:
@@ -1236,14 +1242,71 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
 
             for EVENT in indigo.triggers.iter(self.pluginId):
                 if not EVENT.enabled : continue
+                save = 0
                 props = EVENT.pluginProps
+                oneAll   = props["oneAll"] 
+                homeAway = props["homeAway"] 
+                noDoors  = props["noDoors"] 
+                triggerType = oneAll+"-"+homeAway+"-"+noDoors
+                if  homeAway =="away":  doorsTimeWindowSymetric = "After"
+                else:                   doorsTimeWindowSymetric = "BeforeOrAfter"
+                if "doorsTimeWindowBeforeOrAfter" in props: doorsTimeWindowBeforeOrAfter = props["doorsTimeWindowBeforeOrAfter"]
+                devicesM        = json.loads(props["devicesMembers"])
+                try:    lastDoorChange = props["lastDoorChange"]
+                except: lastDoorChange = 0
+                dChanged, doorsLastChange, doorsM ,newChanged= self.getLastDoorChange(json.loads(props["doorsMembers"]), lastDoorChange)
+                if dChanged: 
+                    props["doorsMembers"]   = json.dumps(doorsM)
+                    props["lastDoorChange"] = newChanged
+                    save = 1
+                        
+                dTW             = float(props["doorsTimeWindow"])
+
+                try:    olddevicesCountTRUE = int(props["devicesCountTRUE"])
+                except: olddevicesCountTRUE = 0
+
                 counter = {"home":0,"away":0}
-                devicesM = json.loads(props["devicesMembers"])
                 for DEVICEid in devicesM:
                     if DEVICEid in self.DEVICES: # safety check
-                        if self.DEVICES[DEVICEid]["up"]["state"]   == "home": counter["home"] +=1
-                        if self.DEVICES[DEVICEid]["down"]["state"] == "away": counter["away"] +=1
+                        for ud,ha in (("up","home"),("down","away")):
+                            dTT_dLC         = self.DEVICES[DEVICEid]["down"]["lastChange"] - doorsLastChange
+                            if self.DEVICES[DEVICEid][ud]["state"]   == ha and devicesM[DEVICEid] != ha: 
+                                if ( 
+                                        (
+                                            noDoors != "doors" or noDoors == "doors" 
+                                        )
+                                        and  
+                                        ( 
+                                            (  doorsTimeWindowBeforeOrAfter =="BeforeOrAfter"   and  abs(dTT_dLC) < dTW                   )  # for home use symetric window
+                                            or      
+                                            (  doorsTimeWindowBeforeOrAfter =="Before"          and  abs(dTT_dLC) < dTW  and dTT_dLC < 0  )  # device event must be fore door, eg coming home device present, then open door
+                                            or     
+                                            (  doorsTimeWindowBeforeOrAfter =="After"           and  abs(dTT_dLC) < dTW  and dTT_dLC > 0  )   # dvice event must be after door event: open door then leave    
+                                        )
+                                    ): # for away use trailing window
+                                        devicesM[DEVICEid] = ha
+                                        props["devicesMembers"] = json.dumps(devicesM)
+                                        save +=2
+                            if (self.enableEventTracking and save>0 ) or self.ML.decideMyLog(u"EVENTS"): 
+                                self.ML.myLog( text =""+
+                                    "DEVid:%s" %( DEVICEid.replace(":::","/").ljust(18) ) +
+                                    ";  noDoors:%s" %(noDoors.ljust(5) ) +
+                                    ";  ud:%s" %( ud[0:2] ) +
+                                    ";  ha:%s" %( ha[0:2] ) +
+                                    ";  devTrgT-tDoor:%7.1f" %(  min(dTT_dLC, 9999)  ) +
+                                    ";  dTW:%7.1f" %(  min(dTW, 9999)  )     +
+                                    ";  devM:%s" %(  devicesM[DEVICEid].ljust(5)  )    +
+                                    ";  devUPs:%s" %(self.DEVICES[DEVICEid][ud]["state"])+
+                                    "",mType= "EV-"+source+":"+EVENT.name )
 
+                for DEVICEid in devicesM:
+                    if DEVICEid in self.DEVICES: # safety check
+                        if devicesM[DEVICEid] == "home":
+                            counter["home"] +=1
+                        if devicesM[DEVICEid] == "away":
+                            counter["away"] +=1
+
+                                
                 if self.eventVariablePrefix !="":
                     for vn in ["home","away"]:
                         varName = (self.eventVariablePrefix+"_"+EVENT.name+"_"+vn).replace(" ","_")
@@ -1256,76 +1319,59 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                             indigo.variable.updateValue(varName, unicode(counter[vn]))
 
 
-                doorsM = json.loads(props["doorsMembers"])
-                doorsLastChange = 0
-                for DEVICEid in doorsM:
-                    if DEVICEid in self.DOORS: # safety check
-                        doorsLastChange = max(self.DOORS[DEVICEid]["lastChange"] , doorsLastChange)
-
-                oneAll   = props["oneAll"] 
-                homeAway = props["homeAway"] 
-                noDoors  = props["noDoors"] 
-                triggerType = oneAll+"-"+homeAway+"-"+noDoors
-
-                try:    olddevicesCountTRUE = int(props["devicesCountTRUE"])
-                except: olddevicesCountTRUE = 0
                 ### make  the device summary input
-                if (  oneAll == "all" and counter[homeAway] == len(devicesM) ) or \
-                   (  oneAll == "one" and counter[homeAway] >= 1 and olddevicesCountTRUE == 0 ):  # one : if 0--> 1;  not (if 1->2 or 2->3 or 2->1)
-                    if  olddevicesCountTRUE != counter[homeAway]:
-                        props["devicesTrigger"]         = True 
-                        props["devicesTriggerTimeLast"] = props["devicesTriggerTime"]  # start the timer 
-                        props["devicesTriggerTime"]     = time.time()  # start the timer 
-                else:
-                    pass
-                save = True
-                props["devicesCountTRUELast"] = props["devicesCountTRUE"] 
-                props["devicesCountTRUE"] = counter[homeAway]
-
-
-                dTT_dLC =  props["devicesTriggerTime"] - doorsLastChange
-                dTW     = float(props["doorsTimeWindow"])
+                if  olddevicesCountTRUE != counter[homeAway]:
+                    if (  
+                            ( oneAll == "all" and counter[homeAway] == len(devicesM) ) 
+                             or 
+                            ( oneAll == "one" and counter[homeAway] == 1   and "atleastOne" in props and 
+                                (   
+                                    ( props["atleastOne"].find("2-1") >-1  and olddevicesCountTRUE > 1 )  # from 2-->1
+                                or
+                                    ( props["atleastOne"].find("0-1") >-1  and olddevicesCountTRUE == 0 ) # from 0-->1
+                                )
+                            )
+                        ):  # one : if 0-->1; or 2-->1 ?
+                        props["devicesTrigger"]      = True 
+                        props["devicesTriggerTime"]  = time.time()  # start the timer 
+                    else:
+                        props["devicesTrigger"]      = False 
+                    props["devicesCountTRUE"]        = counter[homeAway]
+                    save +=4
       
                 ## ready to trigger?
-                if self.enableEventTracking or  self.ML.decideMyLog(u"EVENTS"): 
-                    self.ML.myLog( text =""+
-                    "trigTyp: "              +unicode( triggerType ).ljust(14)+
-                    ";  devTrig "            +unicode( props["devicesTrigger"] ).ljust(5)+
-                    ";  allT:"               +unicode( oneAll == "all" and counter[homeAway] == len(devicesM) )[0]+
-                    ";  1T:"                 +unicode( oneAll == "one" and counter[homeAway] >= 1 and  olddevicesCountTRUE == 0  )[0]+
-                    ";  olddevCtTRUE:"       +unicode( olddevicesCountTRUE ).ljust(2)+
-                    ";  countTRUE:"          +unicode(counter)+
-                    ";  Ndevs:%d"            %( len(devicesM) )+
-                    ";  devTrgT-tDoor:%6.1f" %(  min(dTT_dLC, 9999)  ) +
-                    ";  t-tTrg:%6.1f"        %(  min(time.time() - props["devicesTriggerTime"]   , 9999)  )+
-                    ";  t-tDoor:%6.1f"       %(  min(time.time() - doorsLastChange   , 9999)  )+
-                    ";  doorTWdow:%4d"       %( dTW )  +
-                    "",mType= "EV-"+source+":"+EVENT.name )
 
                 if props["devicesTrigger"]:
                     ## first test if we should ignore , to often? 
                     if (  time.time() - props["triggerTimeLast"] < float(props["minTimeTriggerBeforeRepeat"])  ):
                             props["devicesTrigger"]  = False
-                            save = True
+                            save +=8
                     ##  do a delay 
                     elif  ( time.time() - props["devicesTriggerTime"] < float(props["delayAfterDeviceTrigger"]) ): # requested a delay after trigger to allow a quick reset
                             pass
-                    ## check for door window  !!! abs() for home , only going forward for going away 
-                    elif ( noDoors != "doors") or (
-                            ( noDoors == "doors") and  ( 
-                              (  homeAway =="home"  and ( abs(dTT_dLC) < dTW                      ) ) or      # for home use symetric window
-                              (  homeAway =="away"  and (    (dTT_dLC) < dTW  and dTT_dLC > 0     ) )   )  ): # for away use trailing window
+                    else:
                             props["triggerTimeLast"] = time.time()
                             props["devicesTrigger"]  = False
-                            EVENT.replacePluginPropsOnServer(props)
-                            save = False
+                            save +=16
                             self.triggerEvent(EVENT.id,triggerType)
-                    ## wait with reject until window closes for new door, ie coming home pibeacon first then door open/close
-                    elif noDoors == "doors" and time.time() - props["devicesTriggerTime"]  > dTW:  ## everything is expired
-                            props["devicesTrigger"]      = False
-                            save = True
                         
                 if save: EVENT.replacePluginPropsOnServer(props)
+                if (self.enableEventTracking and save >0 )  or  self.ML.decideMyLog(u"EVENTS") : 
+                    self.ML.myLog( text =""+
+                    "trigTyp: "              +unicode( triggerType ).ljust(14)+
+                    ";  devTrig: "            +unicode( props["devicesTrigger"] )[0]+
+                    ";  allT:"               +unicode( oneAll == "all" and counter[homeAway] == len(devicesM) )[0]+
+                    ";  1T:"                 +unicode( oneAll == "one" and counter[homeAway] >= 1 and  olddevicesCountTRUE == 0  )[0]+
+                    ";  olddevCtTRUE:"       +unicode( olddevicesCountTRUE ).ljust(2)+
+                    ";  countTRUE:"          +unicode(counter).replace(" ","")+
+                    ";  Ndevs:%d"            %( len(devicesM) )+
+                    ";  devM:%s"             %(props["devicesMembers"].replace(" ","").replace(":::","/")) +
+                    ";  dorM:%s"             %(props["doorsMembers"].replace(" ","").replace(":::","/")) +
+                    ";  t-tTrg:%6.1f"        %(  min(time.time() - props["devicesTriggerTime"]   , 9999)  )+
+                    ";  t-tDoor:%6.1f"       %(  min(time.time() - doorsLastChange   , 9999)  )+
+                    ";  doorTWdow:%4d"       %( dTW )  +
+                    ";  save:%d"%(save)+
+                    "",mType= "EV-"+source+":"+EVENT.name )
      
         except Exception, e:
             self.ML.myLog( text = u"updateEVENTStatus error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
@@ -1338,6 +1384,21 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def triggerStopProcessing(self, trigger):
         if trigger.id in self.triggerList:
             self.triggerList.remove(trigger.id)
+
+
+    ####-----------------  door gate ---------
+    def getLastDoorChange(self, doorsM,lastDoorChange):
+        doorsLastChange    = 0
+        changed = False
+        for DEVICEid in doorsM:
+            if DEVICEid in self.DOORS: # safety check
+                if self.DOORS[DEVICEid]["lastChange"] > doorsLastChange: 
+                    doorsLastChange = self.DOORS[DEVICEid]["lastChange"]  
+                    doorsM[DEVICEid] = self.DOORS[DEVICEid]["signalReceived"]
+                    
+        if  doorsLastChange != lastDoorChange:
+            changed = True
+        return changed, doorsLastChange, doorsM, doorsLastChange
 
 ######################################################################################
     # Indigo Trigger Firing
@@ -1359,7 +1420,6 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
         return
 
 
-        ##if self.ML.decideMyLog(u"OutputDevice"): self.ML.myLog( text = xx",mType="abc" )
 ######################################################################################
 
 
@@ -1436,24 +1496,29 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     ####-----------------  ---------
     def filterDelayValues(self, filter, valuesDict, typeId="", targetId=""):
         xList =[]
-        if filter !="short":
+        if filter in ["all"]: 
             xList.append(("0"  ,"immediate"))
+        if filter  in ["all","short","doorPoll","events"]:
             xList.append(("1"  ,"1 sec"))
-        xList.append(("2"  ,"2 sec"))
-        xList.append(("3"  ,"3 sec"))
-        xList.append(("4"  ,"4 sec"))
-        xList.append(("5"  ,"5 sec"))
-        xList.append(("7"  ,"7 sec"))
-        xList.append(("10" ,"10 sec"))
-        xList.append(("15" ,"15 sec"))
-        xList.append(("20" ,"20 sec"))
-        xList.append(("30" ,"30 sec"))
-        xList.append(("40" ,"40 sec"))
-        xList.append(("50" ,"50 sec"))
-        xList.append(("60" ,"60 sec"))
-        xList.append(("70" ,"70 sec"))
-        xList.append(("90" ,"90 sec"))
-        if filter !="short":
+            xList.append(("2"  ,"2 sec"))
+            xList.append(("3"  ,"3 sec"))
+        if filter  in ["all","short","long","doorPoll","events"]:
+            xList.append(("4"  ,"4 sec"))
+            xList.append(("5"  ,"5 sec"))
+            xList.append(("7"  ,"7 sec"))
+            xList.append(("8"  ,"8 sec"))
+            xList.append(("10" ,"10 sec"))
+            xList.append(("12" ,"12 sec"))
+        if filter  in ["all","short","long"]:
+            xList.append(("15" ,"15 sec"))
+            xList.append(("20" ,"20 sec"))
+            xList.append(("30" ,"30 sec"))
+            xList.append(("40" ,"40 sec"))
+            xList.append(("50" ,"50 sec"))
+            xList.append(("60" ,"60 sec"))
+            xList.append(("70" ,"70 sec"))
+            xList.append(("90" ,"90 sec"))
+        if filter in ["all","long"]:
             xList.append(("120" ,"2 minutes"))
             xList.append(("150" ,"2.5 minutes"))
             xList.append(("180" ,"3 minutes"))
@@ -1497,8 +1562,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                 for EVENT in indigo.triggers.iter(self.pluginId):
                     props = EVENT.pluginProps
                     if "devicesMembers" not in props: continue
-                    devicesM = json.loads(props["devicesMembers"])
-                    if DEVICEid in devicesM:
+                    if DEVICEid in json.loads(props["devicesMembers"]):
                         self.DEVICES[DEVICEid]["used"] = True
                         break
             out = "{"
@@ -1536,8 +1600,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                 for EVENT in indigo.triggers.iter(self.pluginId):
                     props = EVENT.pluginProps
                     if "doorsMembers" not in props: continue
-                    doorsMembers = json.loads(props["doorsMembers"])
-                    if DEVICEid in doorsMembers:
+                    if DEVICEid in json.loads(props["doorsMembers"]):
                         self.DOORS[DEVICEid]["used"] = True
                         break
                         self.doorLoopWait = min(self.doorLoopWait,self.DOORS[DEVICEid]["pollingIntervall"])

@@ -7,7 +7,7 @@
 
             <Field     id="eventUpdateWait" type="menu" defaultValue="5" tooltip="" >
                 <Label>How often to check for Event changes:</Label>
-                <List class="self" filter="short" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="events" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
             <Field     id="eventVariablePrefix" type="textfield" defaultValue="EVENTS" >

@@ -13,7 +13,7 @@
     </MenuItem>
 
     <MenuItem id="print">
-        <Name>Print/ HELP info</Name>
+        <Name>Print info and HELP</Name>
         <ConfigUI>
 
                 <Field id="printHELP" type="button"> 
@@ -77,7 +77,7 @@
 
 
     <MenuItem id="defDevices">
-        <Name>Define ON/off Devices to be tracked </Name>
+        <Name>Define ON/off Devices to be tracked(iPhone, iBeacons..) </Name>
         <ConfigUI>
             <Field id="DefineDevicesAndNew"  type="checkbox" defaultValue="false" hidden="yes">            </Field>
             <Field id="DefineDevicesAndOld"  type="checkbox" defaultValue="false" hidden="yes">            </Field>
@@ -127,11 +127,11 @@
             </Field>
             <Field    id="homeDelay" type="menu" tooltip=""  defaultValue="60"  visibleBindingId="selectStatesOK" visibleBindingValue="true" >
                 <Label>Home to x:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
             <Field    id="awayDelay" type="menu" tooltip="" defaultValue="60"  visibleBindingId="selectStatesOK" visibleBindingValue="true" >
                 <Label>x to Away:</Label>
-                <List class="self" filter="" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
 
@@ -198,7 +198,7 @@
 
             <Field   id="pollingIntervall" type="menu" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   >
                 <Label>pollingIntervall:</Label>
-                <List class="self" filter="short" method="filterDelayValues" dynamicReload="true"/>
+                <List class="self" filter="doorPoll" method="filterDelayValues" dynamicReload="true"/>
             </Field>
             <Field     id="requireStatusChange" type="menu" defaultValue="yes" >
                 <Label>When testing if device has changed, require state change also:</Label>
