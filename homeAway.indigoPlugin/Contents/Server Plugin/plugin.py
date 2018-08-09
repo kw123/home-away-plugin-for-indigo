@@ -116,8 +116,9 @@ class Plugin(indigo.PluginBase):
         self.acceptableStateValues  = ["up","down","expired","on","off","yes","no","true","false","t","f","1","0","ja","nein","an","aus","open","closed","auf","zu"]
         self.emptyDEVICE            = {"up":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"down":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"valueForON":"","pluginId":"","name":"","used":False}
         self.emptyDOOR              = {"lastChange":0,"lastChangeDT":"","signalReceived":"","state":"","name":"","used":False,"requireStatusChange":True,"pollingIntervall":10,"lastCheck":0}
-        self.evPropsToPrint         = ["devicesMembers","devicesCountTRUE","devicesTrigger","devicesTriggerTime","doorsMembers","doorsTimeWindow","atleastOne","triggerTimeLast","minTimeTriggerBeforeRepeat","delayAfterDeviceTrigger","doorsTimeWindowBeforeOrAfter"]
-
+        self.evPropsToPrint         = ["devicesMembers","devicesCountTRUE","devicesTrigger","devicesTriggerTime","doorsMembers","doorsTimeWindow",
+                                       "atleastOne","triggerTimeLast","minTimeTriggerBeforeRepeat","delayAfterDeviceTrigger","doorsTimeWindowBeforeOrAfter",
+                                       "variableConditionID"]
         self.PLUGINS                ={"excluded":{},"acceptable":{},"used":{},"all":{}}
         for item in ["com.perceptiveautomation.indigoplugin.zwave","com.karlwachs.utilities","com.karlwachs.INDIGOplotD","com.ssi.indigoplugin.SONOS",\
                       "com.karlwachs.SATI","com.schollnick.indigoplugin.Survey","com.indigodomo.indigoserver", "com.karlwachs.shutdownAction", \
@@ -184,7 +185,7 @@ class Plugin(indigo.PluginBase):
             self.devicesMembers ={}
             self.doorsMembers ={}
         else:
-            if "lastDoorChange" not in valuesDicct:
+            if "lastDoorChange" not in valuesDict:
                 valuesDict["lastDoorChange"]            = 0
             valuesDict["oneAll"]                        = typeIdSplit[0]
             valuesDict["homeAway"]                      = typeIdSplit[1]
@@ -207,6 +208,15 @@ class Plugin(indigo.PluginBase):
         return D1, VD
  
  
+  ####-----------------  ---------
+    def filterVariables(self, filter, valuesDict, typeId, targetId):
+        xList =[]
+        for var in indigo.variables :
+            xList.append(( unicode(var.id),var.name+"   ; currentV: "+ var.value))
+        xList.append(("0","==== off, do not use ===="))
+        return xList
+
+
    ####-----------------  --------- DEVICES
    ####-----------------  ---------
     def filterDevicesEvent(self, filter, valuesDict, typeId, targetId):
@@ -486,7 +496,13 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
         self.ML.myLog(text ="ev id: "+ unicode(item.id).ljust(12)+ "; ev Type: "+item.pluginTypeId +" ==== EVENT",mType=item.name+"==")
         for prop in self.evPropsToPrint:
             if prop not in props: continue
-            out = prop.ljust(30)+ ": "+ unicode(props[prop])
+            if prop == "variableConditionID" and props[prop] not in ["0",""]: 
+                var = indigo.variables[int(props[prop])]
+                out = "Variable condition name" .ljust(30)  + ": "+ var.name
+                self.ML.myLog(text = out,mType="EVENTS")
+                out = "Variable value to trigger" .ljust(30)+ ": "+ props["variableConditionValue"]+" =-= currentValue: "+var.value
+            else:
+                out = prop.ljust(30)+ ": "+ unicode(props[prop])
             self.ML.myLog(text = out,mType="EVENTS")
         return valuesDict
 
@@ -1341,7 +1357,15 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
       
                 ## ready to trigger?
 
-                if props["devicesTrigger"]:
+                testVarCondition  = True
+                varValue          =""
+                if "variableConditionID" in props and props["variableConditionID"] not in ["0",""] and "variableConditionValue" in props:
+                     var = indigo.variables[int(props["variableConditionID"])]
+                     varValue = var.value
+                     if  varValue != props["variableConditionValue"]: testVarCondition  = False
+
+                triggered = props["devicesTrigger"]
+                if triggered:
                     ## first test if we should ignore , to often? 
                     if (  time.time() - props["triggerTimeLast"] < float(props["minTimeTriggerBeforeRepeat"])  ):
                             props["devicesTrigger"]  = False
@@ -1350,16 +1374,21 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                     elif  ( time.time() - props["devicesTriggerTime"] < float(props["delayAfterDeviceTrigger"]) ): # requested a delay after trigger to allow a quick reset
                             pass
                     else:
+                        if testVarCondition:
                             props["triggerTimeLast"] = time.time()
-                            props["devicesTrigger"]  = False
-                            save +=16
                             self.triggerEvent(EVENT.id,triggerType)
+                        else:
+                            if (self.enableEventTracking and save >0 )  or  self.ML.decideMyLog(u"EVENTS"): 
+                                self.ML.myLog( text= "trig  vetoed by variable condition: "+varValue+" NE "+props["variableConditionValue"]+
+                                "",mType= "EV-"+source+":"+EVENT.name )
+                        save +=16
+                        props["devicesTrigger"]  = False
                         
                 if save: EVENT.replacePluginPropsOnServer(props)
                 if (self.enableEventTracking and save >0 )  or  self.ML.decideMyLog(u"EVENTS") : 
                     self.ML.myLog( text =""+
                     "trigTyp: "              +unicode( triggerType ).ljust(14)+
-                    ";  devTrig: "            +unicode( props["devicesTrigger"] )[0]+
+                    ";  devTrig: "           +unicode( triggered )[0]+" -> "+unicode( props["devicesTrigger"] )[0]+
                     ";  allT:"               +unicode( oneAll == "all" and counter[homeAway] == len(devicesM) )[0]+
                     ";  1T:"                 +unicode( oneAll == "one" and counter[homeAway] >= 1 and  olddevicesCountTRUE == 0  )[0]+
                     ";  olddevCtTRUE:"       +unicode( olddevicesCountTRUE ).ljust(2)+
@@ -1370,6 +1399,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                     ";  t-tTrg:%6.1f"        %(  min(time.time() - props["devicesTriggerTime"]   , 9999)  )+
                     ";  t-tDoor:%6.1f"       %(  min(time.time() - doorsLastChange   , 9999)  )+
                     ";  doorTWdow:%4d"       %( dTW )  +
+                    ";  varCond:%s"          %unicode(testVarCondition)[0]  +
                     ";  save:%d"%(save)+
                     "",mType= "EV-"+source+":"+EVENT.name )
      

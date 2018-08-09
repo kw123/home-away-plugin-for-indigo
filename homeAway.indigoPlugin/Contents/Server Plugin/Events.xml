@@ -23,9 +23,21 @@
                 <List>
                     <Option value="0-1"     >0 to 1 device at home </Option>
                     <Option value="2-1"     >2 to 1 device at home </Option>
-                    <Option value="2-1/0-1" >both, 0 to 1 and 2 to 1 devices at home</Option>
+                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1 devices at home</Option>
                 </List>
-                <Label>At least one means</Label>
+                <Label> &gt; AT LEAST ONE &lt;   one means</Label>
+            </Field>
+
+            <Field    id="varConLabel" type="label" >
+                <Label>Add variable condition for trigger (veto if not same value):</Label>
+            </Field>
+
+            <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  variable name:</Label>
+                <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
+            </Field>
+            <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. variable value must be .. to enable event trigger</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
@@ -77,6 +89,18 @@
     if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
                 <Label>Delay after devices triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="varConLabel" type="label" >
+                <Label>Add variable condition for trigger (veto if not same value):</Label>
+            </Field>
+
+            <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  variable name:</Label>
+                <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
+            </Field>
+            <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. variable value must be .. to enable event trigger</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
@@ -132,9 +156,21 @@
                 <List>
                     <Option value="0-1"     >0 to 1 device away </Option>
                     <Option value="2-1"     >2 to 1 device away </Option>
-                    <Option value="2-1/0-1" >both, 0 to 1 and 2 to 1 devices away</Option>
+                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1 devices away</Option>
                 </List>
-                <Label>At least one means:</Label>
+                <Label> &gt; AT LEAST ONE &lt;   one means:</Label>
+            </Field>
+
+            <Field    id="varConLabel" type="label" >
+                <Label>Add variable condition for trigger (veto if not same value):</Label>
+            </Field>
+
+            <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  variable name:</Label>
+                <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
+            </Field>
+            <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. variable value must be .. to enable event trigger</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
@@ -183,6 +219,18 @@
     if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
                 <Label>Delay after devices triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="varConLabel" type="label" >
+                <Label>Add variable condition for trigger (veto if not same value):</Label>
+            </Field>
+
+            <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  variable name:</Label>
+                <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
+            </Field>
+            <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. variable value must be .. to enable event trigger</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
@@ -239,9 +287,21 @@
                 <List>
                     <Option value="0-1"     >0 to 1 device at home </Option>
                     <Option value="2-1"     >2 to 1 device at home </Option>
-                    <Option value="2-1/0-1" >both, 0 to 1 and 2 to 1 devices at home</Option>
+                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1 devices at home</Option>
                 </List>
-                <Label>At least one means:</Label>
+                <Label> &gt; AT LEAST ONE &lt;   one means:</Label>
+            </Field>
+
+            <Field    id="varConLabel" type="label" >
+                <Label>Add variable condition for trigger (veto if not same value):</Label>
+            </Field>
+
+            <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  variable name:</Label>
+                <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
+            </Field>
+            <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. variable value must be .. to enable event trigger</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
@@ -335,6 +395,18 @@
     if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
                 <Label>Delay after devices triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="varConLabel" type="label" >
+                <Label>Add variable condition for trigger (veto if not same value):</Label>
+            </Field>
+
+            <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  variable name:</Label>
+                <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
+            </Field>
+            <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. variable value must be .. to enable event trigger</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
@@ -434,9 +506,21 @@
                 <List>
                     <Option value="0-1"     >0 to 1 device away </Option>
                     <Option value="2-1"     >2 to 1 device away </Option>
-                    <Option value="2-1/0-1" >both, 0 to 1 and 2 to 1 devices away</Option>
+                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1 devices away</Option>
                 </List>
-                <Label>At least one means:</Label>
+                <Label> &gt; AT LEAST ONE &lt;   one means:</Label>
+            </Field>
+
+            <Field    id="varConLabel" type="label" >
+                <Label>Add variable condition for trigger (veto if not same value):</Label>
+            </Field>
+
+            <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  variable name:</Label>
+                <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
+            </Field>
+            <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. variable value must be .. to enable event trigger</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
@@ -530,6 +614,18 @@
     if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
                 <Label>Delay after devices triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+            </Field>
+
+            <Field    id="varConLabel" type="label" >
+                <Label>Add variable condition for trigger (veto if not same value):</Label>
+            </Field>
+
+            <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  variable name:</Label>
+                <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
+            </Field>
+            <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. variable value must be .. to enable event trigger</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
