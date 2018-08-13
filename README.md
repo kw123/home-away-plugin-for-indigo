@@ -19,8 +19,7 @@ This will reduce the false positives / negatives. Only when the door opens/ clos
 the plugin supports:  
 * **all home** all devices must have come home  
 * **one home** at least one device just came home   
-* **xx home with door gate** same as above, but the door must have opened or closed before / after the sensor(s) came home  
-and the same for away  
+* **xx home with door gate** same as above, but the door must have opened or closed before / after the sensor(s) came home and the same for away  
 * **all away** all devices must have went away  
 * **one away** at least one device just went away  
 * **xx away with door gate** same as above, but the door must have opened or closed before / after the sensor(s) went away  
