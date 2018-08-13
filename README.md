@@ -25,8 +25,8 @@ and the same for away
 * **one away** at least one device just went away  
 * **xx away with door gate** same as above, but the door must have opened or closed before / after the sensor(s) went away  
 
-##Parameters  
-###in config you can set some timing parameters: how often should events be checked etc.  
+## Parameters  
+### in config you can set some timing parameters: how often should events be checked etc.  
 
 ### In Menue you can set:  
 * **which plugin to listen to** select from all indigo plugins which it should listen to   
