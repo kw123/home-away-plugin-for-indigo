@@ -1,340 +1,582 @@
 <?xml version="1.0"?>
 <Events>
     <Event id="one-home-no">
-        <Name>At least ONE Device must be HOME</Name>
+        <Name>At least ONE  sensor must be HOME</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
                 <Label>Message from plugin:</Label>
             </Field>
+            <Field    id="break0" type="label" defaultValue=""> </Field>
+
 
             <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
                 <Label>Min time between two Triggers:</Label>
-                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="triggerRepeat" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+            <Field    id="delayAfterSensorTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
     the trigger will stay active for the period of time. if nothing happens the trigger will fire
-    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
-                <Label>Delay after devices triggered:</Label>
+    if the  sensor has a change in status if it is an away trigger and the  sensor goes up again, the trigger will be cancelled." >
+                <Label>Delay after  sensors triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
             <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="" >
                 <List>
-                    <Option value="0-1"     >0 to 1 device at home </Option>
-                    <Option value="2-1"     >2 to 1 device at home </Option>
-                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1 devices at home</Option>
+                    <Option value="0-1"     >0 to 1  sensor at home </Option>
+                    <Option value="2-1"     >2 to 1  sensor at home </Option>
+                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1  sensors at home</Option>
                 </List>
                 <Label> &gt; AT LEAST ONE &lt;   one means</Label>
             </Field>
 
+            <Field    id="break1" type="label" defaultValue=""> </Field>
             <Field    id="varConLabel" type="label" >
-                <Label>Add variable condition for trigger (veto if not same value):</Label>
+                <Label>== Add variable and or device/state cond. for trigger (veto if not xx value):</Label>
             </Field>
 
             <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
-                <Label>..  variable name:</Label>
+                <Label>(A)                         Variable name:</Label>
                 <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
             </Field>
+            <Field     id="variableConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
             <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
-                <Label>.. variable value must be .. to enable event trigger</Label>
+                <Label>.. value compared to:</Label>
+            </Field>
+
+            <Field    id="deviceConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>(B)                            sensor name:</Label>
+                <List class="self" filter="new" method="filterDevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="buttonConfirmDeviceState" type="button" tooltip="" >
+                <Label>to select Device</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceStateCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="deviceConditionSTATE" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  state name:</Label>
+                <List class="self" filter="new" method="filterDevStates"  dynamicReload="true"/>
+            </Field>
+            <Field     id="deviceConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
+            <Field    id="deviceConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. value compared to:</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
+            
+            <Field    id="newExSensorsLabel" type="label" >
+                <Label>== Select  sensors that comprise the Event:</Label>
+            </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>Select devices in Event:</Label>
+            <Field     id="newOrExistingSensor" type="menu" defaultValue="add the  sensors here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
+                <Label>Select  sensors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
-            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>Select devices in Event:</Label>
-                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectExistingSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="existing,delete">
+                <Label>Select  sensors in Event:</Label>
+                <List class="self" filter="existing" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>Add new Devices:</Label>
-                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectNewSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new">
+                <Label>Add new Sensors:</Label>
+                <List class="self" filter="new" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
-                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            <Field    id="confirmRemoveSensor" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonconfirmRemoveSensorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
-                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            <Field    id="confirmEditSensorSave" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmSensorSettingsCALLBACK</CallbackMethod>
             </Field>
-
-            <Field    id="break3" type="label" defaultValue=""> </Field>
 
         </ConfigUI>
     </Event>
     <Event id="all-home-no">
-        <Name>ALL Devices must be HOME</Name>
+        <Name>ALL  sensors must be HOME</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
                 <Label>Message from plugin:</Label>
             </Field>
+            <Field    id="break0" type="label" defaultValue=""> </Field>
+
 
             <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
                 <Label>Min time between two Triggers:</Label>
-                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="triggerRepeat" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+            <Field    id="delayAfterSensorTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
     the trigger will stay active for the period of time. if nothing happens the trigger will fire
-    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
-                <Label>Delay after devices triggered:</Label>
+    if the  sensor has a change in status if it is an away trigger and the  sensor goes up again, the trigger will be cancelled." >
+                <Label>Delay after  sensors triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
+            <Field    id="break1" type="label" defaultValue=""> </Field>
             <Field    id="varConLabel" type="label" >
-                <Label>Add variable condition for trigger (veto if not same value):</Label>
+                <Label>== Add variable and or device/state cond. for trigger (veto if not xx value):</Label>
             </Field>
 
             <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
-                <Label>..  variable name:</Label>
+                <Label>(A)                         Variable name:</Label>
                 <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
             </Field>
+            <Field     id="variableConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
             <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
-                <Label>.. variable value must be .. to enable event trigger</Label>
+                <Label>.. value compared to:</Label>
+            </Field>
+
+            <Field    id="deviceConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>(B)                            sensor name:</Label>
+                <List class="self" filter="new" method="filterDevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="buttonConfirmDeviceState" type="button" tooltip="" >
+                <Label>to select Device</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceStateCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="deviceConditionSTATE" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  state name:</Label>
+                <List class="self" filter="new" method="filterDevStates"  dynamicReload="true"/>
+            </Field>
+            <Field     id="deviceConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
+            <Field    id="deviceConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. value compared to:</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
+            
+            <Field    id="newExSensorsLabel" type="label" >
+                <Label>== Select  sensors that comprise the Event:</Label>
+            </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>Select devices in Event:</Label>
+            <Field     id="newOrExistingSensor" type="menu" defaultValue="add the  sensors here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
+                <Label>Select  sensors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
-            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>Select devices in Event:</Label>
-                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectExistingSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="existing,delete">
+                <Label>Select  sensors in Event:</Label>
+                <List class="self" filter="existing" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>Add new Devices:</Label>
-                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectNewSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new">
+                <Label>Add new Sensors:</Label>
+                <List class="self" filter="new" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
-                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            <Field    id="confirmRemoveSensor" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonconfirmRemoveSensorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
-                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            <Field    id="confirmEditSensorSave" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmSensorSettingsCALLBACK</CallbackMethod>
             </Field>
 
         </ConfigUI>
     </Event>
     <Event id="one-away-no">
-        <Name>At least ONE Device must be AWAY</Name>
+        <Name>At least ONE  sensor must be AWAY</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
                 <Label>Message from plugin:</Label>
             </Field>
+            <Field    id="break0" type="label" defaultValue=""> </Field>
+
 
             <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
                 <Label>Min time between two Triggers:</Label>
-                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="triggerRepeat" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+            <Field    id="delayAfterSensorTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
     the trigger will stay active for the period of time. if nothing happens the trigger will fire
-    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
-                <Label>Delay after devices triggered:</Label>
+    if the  sensor has a change in status if it is an away trigger and the  sensor goes up again, the trigger will be cancelled." >
+                <Label>Delay after  sensors triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="this option defines the transition used eitehr going from 0 to 1 device or from 2 devices to 1 triggers the event" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="this option defines the transition used eitehr going from 0 to 1  sensor or from 2  sensors to 1 triggers the event" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
                 <List>
-                    <Option value="0-1"     >0 to 1 device away </Option>
-                    <Option value="2-1"     >2 to 1 device away </Option>
-                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1 devices away</Option>
+                    <Option value="0-1"     >0 to 1  sensor away </Option>
+                    <Option value="2-1"     >2 to 1  sensor away </Option>
+                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1  sensors away</Option>
                 </List>
                 <Label> &gt; AT LEAST ONE &lt;   one means:</Label>
             </Field>
 
+            <Field    id="break1" type="label" defaultValue=""> </Field>
             <Field    id="varConLabel" type="label" >
-                <Label>Add variable condition for trigger (veto if not same value):</Label>
+                <Label>== Add variable and or device/state cond. for trigger (veto if not xx value):</Label>
             </Field>
 
             <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
-                <Label>..  variable name:</Label>
+                <Label>(A)                         Variable name:</Label>
                 <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
             </Field>
+            <Field     id="variableConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
             <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
-                <Label>.. variable value must be .. to enable event trigger</Label>
+                <Label>.. value compared to:</Label>
+            </Field>
+
+            <Field    id="deviceConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>(B)                            sensor name:</Label>
+                <List class="self" filter="new" method="filterDevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="buttonConfirmDeviceState" type="button" tooltip="" >
+                <Label>to select Device</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceStateCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="deviceConditionSTATE" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  state name:</Label>
+                <List class="self" filter="new" method="filterDevStates"  dynamicReload="true"/>
+            </Field>
+            <Field     id="deviceConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
+            <Field    id="deviceConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. value compared to:</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
+            
+            <Field    id="newExSensorsLabel" type="label" >
+                <Label>== Select  sensors that comprise the Event:</Label>
+            </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>Select devices in Event:</Label>
+            <Field     id="newOrExistingSensor" type="menu" defaultValue="add the  sensors here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
+                <Label>Select  sensors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
-            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>Select devices in Event:</Label>
-                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectExistingSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="existing,delete">
+                <Label>Select  sensors in Event:</Label>
+                <List class="self" filter="existing" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>Add new Devices:</Label>
-                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectNewSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new">
+                <Label>Add new Sensors:</Label>
+                <List class="self" filter="new" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
-                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            <Field    id="confirmRemoveSensor" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonconfirmRemoveSensorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
-                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            <Field    id="confirmEditSensorSave" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmSensorSettingsCALLBACK</CallbackMethod>
             </Field>
+
         </ConfigUI>
     </Event>
     <Event id="all-away-no">
-        <Name>ALL Devices must be AWAY </Name>
+        <Name>ALL  sensors must be AWAY </Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
                 <Label>Message from plugin:</Label>
             </Field>
+            <Field    id="break0" type="label" defaultValue=""> </Field>
+
 
             <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
                 <Label>Min time between two Triggers:</Label>
-                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="triggerRepeat" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+            <Field    id="delayAfterSensorTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
     the trigger will stay active for the period of time. if nothing happens the trigger will fire
-    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
-                <Label>Delay after devices triggered:</Label>
+    if the  sensor has a change in status if it is an away trigger and the  sensor goes up again, the trigger will be cancelled." >
+                <Label>Delay after  sensors triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
+            <Field    id="break1" type="label" defaultValue=""> </Field>
             <Field    id="varConLabel" type="label" >
-                <Label>Add variable condition for trigger (veto if not same value):</Label>
+                <Label>== Add variable and or device/state cond. for trigger (veto if not xx value):</Label>
             </Field>
 
             <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
-                <Label>..  variable name:</Label>
+                <Label>(A)                         Variable name:</Label>
                 <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
             </Field>
+            <Field     id="variableConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
             <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
-                <Label>.. variable value must be .. to enable event trigger</Label>
+                <Label>.. value compared to:</Label>
+            </Field>
+
+            <Field    id="deviceConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>(B)                            sensor name:</Label>
+                <List class="self" filter="new" method="filterDevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="buttonConfirmDeviceState" type="button" tooltip="" >
+                <Label>to select Device</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceStateCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="deviceConditionSTATE" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  state name:</Label>
+                <List class="self" filter="new" method="filterDevStates"  dynamicReload="true"/>
+            </Field>
+            <Field     id="deviceConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
+            <Field    id="deviceConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. value compared to:</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
-
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>Select devices in Event:</Label>
-                <List>
-                    <Option value="new"      >add new </Option>
-                    <Option value="existing" >edit existing </Option>
-                    <Option value="delete"   >delete </Option>
-                </List>
+            
+            <Field    id="newExSensorsLabel" type="label" >
+                <Label>== Select  sensors that comprise the Event:</Label>
             </Field>
 
-            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>Select devices in Event:</Label>
-                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectExistingSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="existing,delete">
+                <Label>Select  sensors in Event:</Label>
+                <List class="self" filter="existing" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>Add new Devices:</Label>
-                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectNewSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new">
+                <Label>Add new Sensors:</Label>
+                <List class="self" filter="new" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
-                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            <Field    id="confirmRemoveSensor" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonconfirmRemoveSensorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
-                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            <Field    id="confirmEditSensorSave" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmSensorSettingsCALLBACK</CallbackMethod>
             </Field>
 
         </ConfigUI>
     </Event>
     <Event id="one-home-doors">
-        <Name>At least ONE Device must be HOME with Door condition</Name>
+        <Name>At least ONE  sensor must be HOME with Door condition</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
                 <Label>Message from plugin:</Label>
             </Field>
+            <Field    id="break0" type="label" defaultValue=""> </Field>
 
             <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
                 <Label>Min time between two Triggers:</Label>
-                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="triggerRepeat" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+            <Field    id="delayAfterSensorTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
     the trigger will stay active for the period of time. if nothing happens the trigger will fire
-    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
-                <Label>Delay after devices triggered:</Label>
+    if the  sensor has a change in status if it is an away trigger and the  sensor goes up again, the trigger will be cancelled." >
+                <Label>Delay after  sensors triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="this option defines the transition used eitehr going from 0 to 1 device or from 2 devices to 1 triggers the event" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="this option defines the transition used eitehr going from 0 to 1  sensor or from 2  sensors to 1 triggers the event" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
                 <List>
-                    <Option value="0-1"     >0 to 1 device at home </Option>
-                    <Option value="2-1"     >2 to 1 device at home </Option>
-                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1 devices at home</Option>
+                    <Option value="0-1"     >0 to 1  sensor at home </Option>
+                    <Option value="2-1"     >2 to 1  sensor at home </Option>
+                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1  sensors at home</Option>
                 </List>
                 <Label> &gt; AT LEAST ONE &lt;   one means:</Label>
             </Field>
 
+            <Field     id="resetEVENTwoDoors" type="menu" defaultValue="RESET = re-enable  sensor status for event ONLY when  sensors go away and door trigger  or just  sensors go away" >
+                <Label>Reset  sensors to away:</Label>
+                <List>
+                    <Option value="withDoorsOnly" >only when also door triggers</Option>
+                    <Option value="woDoors"       >any time  sensors go away </Option>
+                </List>
+            </Field>
+
+
+            <Field    id="break1" type="label" defaultValue=""> </Field>
             <Field    id="varConLabel" type="label" >
-                <Label>Add variable condition for trigger (veto if not same value):</Label>
+                <Label>== Add variable and or device/state cond. for trigger (veto if not xx value):</Label>
             </Field>
 
             <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
-                <Label>..  variable name:</Label>
+                <Label>(A)                         Variable name:</Label>
                 <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
             </Field>
+            <Field     id="variableConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
             <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
-                <Label>.. variable value must be .. to enable event trigger</Label>
+                <Label>.. value compared to:</Label>
+            </Field>
+
+            <Field    id="deviceConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>(B)                            sensor name:</Label>
+                <List class="self" filter="new" method="filterDevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="buttonConfirmDeviceState" type="button" tooltip="" >
+                <Label>to select Device</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceStateCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="deviceConditionSTATE" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  state name:</Label>
+                <List class="self" filter="new" method="filterDevStates"  dynamicReload="true"/>
+            </Field>
+            <Field     id="deviceConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
+            <Field    id="deviceConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. value compared to:</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
+            
+            <Field    id="newExSensorsLabel" type="label" >
+                <Label>== Select  sensors that comprise the Event:</Label>
+            </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>Select devices in Event:</Label>
+            <Field     id="newOrExistingSensor" type="menu" defaultValue="add the  sensors here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
+                <Label>Select  sensors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
-            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>Select devices in Event:</Label>
-                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectExistingSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="existing,delete">
+                <Label>Select  sensors in Event:</Label>
+                <List class="self" filter="existing" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>Add new Devices:</Label>
-                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectNewSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new">
+                <Label>Add new Sensors:</Label>
+                <List class="self" filter="new" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
-                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            <Field    id="confirmRemoveSensor" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonconfirmRemoveSensorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
-                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            <Field    id="confirmEditSensorSave" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmSensorSettingsCALLBACK</CallbackMethod>
             </Field>
 
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
+            <Field    id="newExdoorsLabel" type="label" >
+                <Label>== Select DOORS that comprise the Event:</Label>
+            </Field>
+
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off  sensors are accepted" >
                 <Label>Select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -357,18 +599,15 @@
                 <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>Time window for door-open event active:</Label>
+
+            <Field    id="doorsTimeWindowBefore" type="menu" defaultValue="90" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window BEFORE for door-open event active:</Label>
                 <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="doorsTimeWindowBeforeOrAfter" type="menu" defaultValue="After" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>Time window for door-open gate to be active:</Label>
-                <List>
-                    <Option value="BeforeOrAfter"  >Devices can trigger before or after the door open/ closes</Option>
-                    <Option value="After"          >Devices MUST change up/down AFTER  door open/close</Option>
-                    <Option value="Before"         >Devices MUST change up/down BEFORE door open/close</Option>
-                </List>
+            <Field    id="doorsTimeWindowAfter" type="menu" defaultValue="30" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window AFTER for door-open event active:</Label>
+                <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
             <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
@@ -379,67 +618,128 @@
         </ConfigUI>
     </Event>
     <Event id="all-home-doors">
-        <Name>ALL Devices must be HOME with Door condition</Name>
+        <Name>ALL  sensors must be HOME with Door condition</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
                 <Label>Message from plugin:</Label>
             </Field>
+            <Field    id="break0" type="label" defaultValue=""> </Field>
+
 
             <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
                 <Label>Min time between two Triggers:</Label>
-                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="triggerRepeat" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+            <Field    id="delayAfterSensorTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
     the trigger will stay active for the period of time. if nothing happens the trigger will fire
-    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
-                <Label>Delay after devices triggered:</Label>
+    if the  sensor has a change in status if it is an away trigger and the  sensor goes up again, the trigger will be cancelled." >
+                <Label>Delay after  sensors triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
+            <Field     id="resetEVENTwoDoors" type="menu" defaultValue="RESET = re-enable  sensor status for event ONLY when  sensors go away and door trigger  or just  sensors go away" >
+                <Label>Reset  sensors to away:</Label>
+                <List>
+                    <Option value="withDoorsOnly" >only when also door triggers</Option>
+                    <Option value="woDoors"       >any time  sensors go away </Option>
+                </List>
+            </Field>
+
+
+            <Field    id="break1" type="label" defaultValue=""> </Field>
             <Field    id="varConLabel" type="label" >
-                <Label>Add variable condition for trigger (veto if not same value):</Label>
+                <Label>== Add variable and or device/state cond. for trigger (veto if not xx value):</Label>
             </Field>
 
             <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
-                <Label>..  variable name:</Label>
+                <Label>(A)                         Variable name:</Label>
                 <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
             </Field>
+            <Field     id="variableConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
             <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
-                <Label>.. variable value must be .. to enable event trigger</Label>
+                <Label>.. value compared to:</Label>
+            </Field>
+
+            <Field    id="deviceConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>(B)                            sensor name:</Label>
+                <List class="self" filter="new" method="filterDevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="buttonConfirmDeviceState" type="button" tooltip="" >
+                <Label>to select Device</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceStateCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="deviceConditionSTATE" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  state name:</Label>
+                <List class="self" filter="new" method="filterDevStates"  dynamicReload="true"/>
+            </Field>
+            <Field     id="deviceConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
+            <Field    id="deviceConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. value compared to:</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
+            
+            <Field    id="newExSensorsLabel" type="label" >
+                <Label>== Select  sensors that comprise the Event:</Label>
+            </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>Select devices in Event:</Label>
+            <Field     id="newOrExistingSensor" type="menu" defaultValue="add the  sensors here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
+                <Label>Select  sensors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
-            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>Select devices in Event:</Label>
-                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectExistingSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="existing,delete">
+                <Label>Select  sensors in Event:</Label>
+                <List class="self" filter="existing" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>Add new Devices:</Label>
-                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectNewSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new">
+                <Label>Add new Sensors:</Label>
+                <List class="self" filter="new" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
-                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            <Field    id="confirmRemoveSensor" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonconfirmRemoveSensorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
-                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            <Field    id="confirmEditSensorSave" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmSensorSettingsCALLBACK</CallbackMethod>
             </Field>
 
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
+            <Field    id="newExdoorsLabel" type="label" >
+                <Label>== Select DOORS that comprise the Event:</Label>
+            </Field>
+
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off  sensors are accepted" >
                 <Label>Select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -462,18 +762,15 @@
                 <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>Time window for door-open event active:</Label>
+
+            <Field    id="doorsTimeWindowBefore" type="menu" defaultValue="90" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window BEFORE for door-open event active:</Label>
                 <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="doorsTimeWindowBeforeOrAfter" type="menu" defaultValue="After" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>Time window for door-open gate to be active:</Label>
-                <List>
-                    <Option value="BeforeOrAfter"  >Devices can trigger before or after the door open/ closes</Option>
-                    <Option value="After"          >Devices MUST change up/down AFTER  door open/close</Option>
-                    <Option value="Before"         >Devices MUST change up/down BEFORE door open/close</Option>
-                </List>
+            <Field    id="doorsTimeWindowAfter" type="menu" defaultValue="30" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window AFTER for door-open event active:</Label>
+                <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
             <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
@@ -484,76 +781,137 @@
         </ConfigUI>
     </Event>
     <Event id="one-away-doors">
-        <Name>At least ONE Device must be AWAY with Door condition</Name>
+        <Name>At least ONE  sensor must be AWAY with Door condition</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
                 <Label>Message from plugin:</Label>
             </Field>
+            <Field    id="break0" type="label" defaultValue=""> </Field>
+
 
             <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
                 <Label>Min time between two Triggers:</Label>
-                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="triggerRepeat" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+            <Field    id="delayAfterSensorTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
     the trigger will stay active for the period of time. if nothing happens the trigger will fire
-    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
-                <Label>Delay after devices triggered:</Label>
+    if the  sensor has a change in status if it is an away trigger and the  sensor goes up again, the trigger will be cancelled." >
+                <Label>Delay after  sensors triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="this option defines the transition used eitehr going from 0 to 1 device or from 2 devices to 1 triggers the event" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
+            <Field    id="atleastOne" type="menu" defaultValue="2-1/0-1" tooltip="this option defines the transition used eitehr going from 0 to 1  sensor or from 2  sensors to 1 triggers the event" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
                 <List>
-                    <Option value="0-1"     >0 to 1 device away </Option>
-                    <Option value="2-1"     >2 to 1 device away </Option>
-                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1 devices away</Option>
+                    <Option value="0-1"     >0 to 1  sensor away </Option>
+                    <Option value="2-1"     >2 to 1  sensor away </Option>
+                    <Option value="2-1/0-1" >0 to 1 OR 2 to 1  sensors away</Option>
                 </List>
                 <Label> &gt; AT LEAST ONE &lt;   one means:</Label>
             </Field>
 
+            <Field     id="resetEVENTwoDoors" type="menu" defaultValue="RESET = re-enable  sensor status for event ONLY when  sensors come home and door trigger  or just  sensors come home" >
+                <Label>Reset  sensors to home:</Label>
+                <List>
+                    <Option value="withDoorsOnly" >only when also door triggers</Option>
+                    <Option value="woDoors"      >any time  sensors come home </Option>
+                </List>
+            </Field>
+
+
+            <Field    id="break1" type="label" defaultValue=""> </Field>
             <Field    id="varConLabel" type="label" >
-                <Label>Add variable condition for trigger (veto if not same value):</Label>
+                <Label>== Add variable and or device/state cond. for trigger (veto if not xx value):</Label>
             </Field>
 
             <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
-                <Label>..  variable name:</Label>
+                <Label>(A)                         Variable name:</Label>
                 <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
             </Field>
+            <Field     id="variableConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
             <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
-                <Label>.. variable value must be .. to enable event trigger</Label>
+                <Label>.. value compared to:</Label>
+            </Field>
+
+            <Field    id="deviceConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>(B)                            sensor name:</Label>
+                <List class="self" filter="new" method="filterDevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="buttonConfirmDeviceState" type="button" tooltip="" >
+                <Label>to select Device</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceStateCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="deviceConditionSTATE" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  state name:</Label>
+                <List class="self" filter="new" method="filterDevStates"  dynamicReload="true"/>
+            </Field>
+            <Field     id="deviceConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
+            <Field    id="deviceConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. value compared to:</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
+            
+            <Field    id="newExSensorsLabel" type="label" >
+                <Label>== Select  sensors that comprise the Event:</Label>
+            </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>Select devices in Event:</Label>
+            <Field     id="newOrExistingSensor" type="menu" defaultValue="add the  sensors here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
+                <Label>Select  sensors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
-            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>Select devices in Event:</Label>
-                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectExistingSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="existing,delete">
+                <Label>Select  sensors in Event:</Label>
+                <List class="self" filter="existing" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>Add new Devices:</Label>
-                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectNewSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new">
+                <Label>Add new Sensors:</Label>
+                <List class="self" filter="new" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
-                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            <Field    id="confirmRemoveSensor" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonconfirmRemoveSensorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
-                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            <Field    id="confirmEditSensorSave" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmSensorSettingsCALLBACK</CallbackMethod>
             </Field>
 
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
+            <Field    id="newExdoorsLabel" type="label" >
+                <Label>== Select DOORS that comprise the Event:</Label>
+            </Field>
+
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off  sensors are accepted" >
                 <Label>Select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -576,18 +934,15 @@
                 <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="doorsTimeWindow" type="menu" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>Time window for door-open event active:</Label>
+
+            <Field    id="doorsTimeWindowBefore" type="menu" defaultValue="10" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window BEFORE for door-open event active:</Label>
                 <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="doorsTimeWindowBeforeOrAfter" type="menu" defaultValue="After" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>Time window for door-open gate to be active:</Label>
-                <List>
-                    <Option value="BeforeOrAfter"  >Devices can trigger before or after the door open/ closes</Option>
-                    <Option value="After"          >Devices MUST change up/down AFTER  door open/close</Option>
-                    <Option value="Before"         >Devices MUST change up/down BEFORE door open/close</Option>
-                </List>
+            <Field    id="doorsTimeWindowAfter" type="menu" defaultValue="90" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window AFTER for door-open event active:</Label>
+                <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
             <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
@@ -598,67 +953,128 @@
         </ConfigUI>
     </Event>
     <Event id="all-away-doors">
-        <Name>ALL Devices must be AWAY with Door condition</Name>
+        <Name>ALL  sensors must be AWAY with Door condition</Name>
         <ConfigUI>
             <Field    id="msg" type="textfield" defaultValue="">
                 <Label>Message from plugin:</Label>
             </Field>
+            <Field    id="break0" type="label" defaultValue=""> </Field>
+
 
             <Field    id="minTimeTriggerBeforeRepeat" type="menu" tooltip="to avoid cases where a sensor goes up/ down quickly and would trigger false events. This is used as a general veto, if the last trigger was less than xx time ago, the trigger will be ignored" >
                 <Label>Min time between two Triggers:</Label>
-                <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
+                <List class="self" filter="triggerRepeat" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="delayAfterDeviceTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
+            <Field    id="delayAfterSensorTrigger" type="menu" tooltip="make sure that this is not a quick on/off/on
     the trigger will stay active for the period of time. if nothing happens the trigger will fire
-    if the device has a change in status if it is an away trigger and the device goes up again, the trigger will be cancelled." >
-                <Label>Delay after devices triggered:</Label>
+    if the  sensor has a change in status if it is an away trigger and the  sensor goes up again, the trigger will be cancelled." >
+                <Label>Delay after  sensors triggered:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
+            <Field    id="break1" type="label" defaultValue=""> </Field>
             <Field    id="varConLabel" type="label" >
-                <Label>Add variable condition for trigger (veto if not same value):</Label>
+                <Label>== Add variable and or device/state cond. for trigger (veto if not xx value):</Label>
             </Field>
+
+            <Field     id="resetEVENTwoDoors" type="menu" defaultValue="RESET = re-enable  sensor status for event ONLY when  sensors comes home and door trigger  or just  sensors come home" >
+                <Label>Reset  sensors to home:</Label>
+                <List>
+                    <Option value="withDOOR" >only when also door triggers</Option>
+                    <Option value="any"      >any time  sensors come home </Option>
+                </List>
+            </Field>
+
 
             <Field    id="variableConditionID" type="menu" defaultValue="0" tooltip="" >
-                <Label>..  variable name:</Label>
+                <Label>(A)                         Variable name:</Label>
                 <List class="self" filter="new" method="filterVariables"  dynamicReload="false"/>
             </Field>
+            <Field     id="variableConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
             <Field    id="variableConditionValue" type="textfield" defaultValue="" tooltip="" >
-                <Label>.. variable value must be .. to enable event trigger</Label>
+                <Label>.. value compared to:</Label>
+            </Field>
+
+            <Field    id="deviceConditionID" type="menu" defaultValue="0" tooltip="" >
+                <Label>(B)                            sensor name:</Label>
+                <List class="self" filter="new" method="filterDevices"  dynamicReload="false"/>
+            </Field>
+            <Field    id="buttonConfirmDeviceState" type="button" tooltip="" >
+                <Label>to select Device</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceStateCALLBACK</CallbackMethod>
+            </Field>
+            <Field    id="deviceConditionSTATE" type="menu" defaultValue="0" tooltip="" >
+                <Label>..  state name:</Label>
+                <List class="self" filter="new" method="filterDevStates"  dynamicReload="true"/>
+            </Field>
+            <Field     id="deviceConditionComp" type="menu" defaultValue="EQ" >
+                <Label> ...comparison:</Label>
+                <List>
+                    <Option value="LT"   >less than (using float)</Option>
+                    <Option value="LE"   >less than or equal (using float)</Option>
+                    <Option value="EQ"   >equal  (strings compared) (using string)</Option>
+                    <Option value="NE"   >NOT equal  (strings compared) (using string)</Option>
+                    <Option value="GE"   >Greater than or equal (using float)</Option>
+                    <Option value="GT"   >Greater than (using float)</Option>
+                    <Option value="in"   >value in   (using string)</Option>
+                    <Option value="not in">value NOT in   (using string)</Option>
+                </List>
+            </Field>
+            <Field    id="deviceConditionValue" type="textfield" defaultValue="" tooltip="" >
+                <Label>.. value compared to:</Label>
             </Field>
 
             <Field    id="break2" type="label" defaultValue=""> </Field>
+            
+            <Field    id="newExSensorsLabel" type="label" >
+                <Label>== Select  sensors that comprise the Event:</Label>
+            </Field>
 
-            <Field     id="newOrExistingDevice" type="menu" defaultValue="add the DEVICES here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
-                <Label>Select devices in Event:</Label>
+            <Field     id="newOrExistingSensor" type="menu" defaultValue="add the  sensors here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
+                <Label>Select  sensors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
                     <Option value="delete"   >delete </Option>
                 </List>
             </Field>
 
-            <Field     id="selectExistingDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="existing,delete">
-                <Label>Select devices in Event:</Label>
-                <List class="self" filter="existing" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectExistingSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="existing,delete">
+                <Label>Select  sensors in Event:</Label>
+                <List class="self" filter="existing" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field     id="selectNewDevice" type="menu" defaultValue="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new">
-                <Label>Add new Devices:</Label>
-                <List class="self" filter="new" method="filterDevicesEvent"  dynamicReload="true"/>
+            <Field     id="selectNewSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new">
+                <Label>Add new Sensors:</Label>
+                <List class="self" filter="new" method="filterSensorsEvent"  dynamicReload="true"/>
             </Field>
 
-            <Field    id="confirmRemoveDevice" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="delete" >
-                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDeviceMemberCALLBACK</CallbackMethod>
+            <Field    id="confirmRemoveSensor" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="delete" >
+                <Label>To remove </Label><Title>CLICK</Title> <CallbackMethod>buttonconfirmRemoveSensorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="confirmEditDeviceSave" type="button" tooltip="" visibleBindingId="newOrExistingDevice" visibleBindingValue="new,existing">
-                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDeviceSettingsCALLBACK</CallbackMethod>
+            <Field    id="confirmEditSensorSave" type="button" tooltip="" visibleBindingId="newOrExistingSensor" visibleBindingValue="new,existing">
+                <Label>To save settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmSensorSettingsCALLBACK</CallbackMethod>
             </Field>
 
             <Field    id="break3" type="label" defaultValue=""> </Field>
 
-            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off devices are accepted" >
+            <Field    id="newExdoorsLabel" type="label" >
+                <Label>== Select DOORS that comprise the Event:</Label>
+            </Field>
+
+            <Field     id="newOrExistingDoor" type="menu" defaultValue="you can have one or more doors defining the time window where on/off  sensors are accepted" >
                 <Label>Select doors in Event:</Label>
                 <List>
                     <Option value="new"      >add new </Option>
@@ -681,20 +1097,15 @@
                 <Label>To remove</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmRemoveDoorMemberCALLBACK</CallbackMethod>
             </Field>
 
-            <Field    id="doorsTimeWindow" type="menu" defaultValue="90" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>Time window for door-open event active:</Label>
+            <Field    id="doorsTimeWindowBefore" type="menu" defaultValue="10" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window BEFORE for door-open event active:</Label>
                 <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
-            <Field    id="doorsTimeWindowBeforeOrAfter" type="menu" defaultValue="After" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
-                <Label>Time window for door-open gate to be active:</Label>
-                <List>
-                    <Option value="BeforeOrAfter"  >Devices can trigger before or after the door open/ closes</Option>
-                    <Option value="After"          >Devices MUST change up/down AFTER  door open/close</Option>
-                    <Option value="Before"         >Devices MUST change up/down BEFORE door open/close</Option>
-                </List>
+            <Field    id="doorsTimeWindowAfter" type="menu" defaultValue="90" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
+                <Label>Time window AFTER for door-open event active:</Label>
+                <List class="self" filter="long" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
-
             <Field    id="confirmEditDoorSave" type="button" tooltip="" visibleBindingId="newOrExistingDoor" visibleBindingValue="new,existing" >
                 <Label>To save Door settings</Label><Title>CLICK</Title> <CallbackMethod>buttonConfirmDoorsSettingsCALLBACK</CallbackMethod>
             </Field>

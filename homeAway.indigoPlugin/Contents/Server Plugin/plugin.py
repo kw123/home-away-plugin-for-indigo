@@ -97,7 +97,7 @@ class Plugin(indigo.PluginBase):
         self.selectedEventFunction  = ""
         self.selectedEvent          = ""
         self.triggerList            = []
-        self.DeviceSelected         = "0"
+        self.SENSORSelected         = "0"
         self.DoorSelected           = "0"
         self.enableEventTracking    = False
         self.logFileActive          = ""
@@ -116,9 +116,9 @@ class Plugin(indigo.PluginBase):
         self.acceptableStateValues  = ["up","down","expired","on","off","yes","no","true","false","t","f","1","0","ja","nein","an","aus","open","closed","auf","zu"]
         self.emptyDEVICE            = {"up":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"down":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"valueForON":"","pluginId":"","name":"","used":False}
         self.emptyDOOR              = {"lastChange":0,"lastChangeDT":"","signalReceived":"","state":"","name":"","used":False,"requireStatusChange":True,"pollingIntervall":10,"lastCheck":0}
-        self.evPropsToPrint         = ["devicesMembers","devicesCountTRUE","devicesTrigger","devicesTriggerTime","doorsMembers","doorsTimeWindow",
-                                       "atleastOne","triggerTimeLast","minTimeTriggerBeforeRepeat","delayAfterDeviceTrigger","doorsTimeWindowBeforeOrAfter",
-                                       "variableConditionID"]
+        self.evPropsToPrint         = ["sensorsMembers","sensorsCountTRUE","sensorsTrigger","sensorsTriggerTime","doorsMembers","doorsTimeWindowBefore","doorsTimeWindowAfter",
+                                       "atleastOne","triggerTimeLast","minTimeTriggerBeforeRepeat","delayAfterSensorTrigger","resetEVENTwoDoors","lastsyncWithDevices",
+                                       "variableConditionID","deviceConditionID"]
         self.PLUGINS                ={"excluded":{},"acceptable":{},"used":{},"all":{}}
         for item in ["com.perceptiveautomation.indigoplugin.zwave","com.karlwachs.utilities","com.karlwachs.INDIGOplotD","com.ssi.indigoplugin.SONOS",\
                       "com.karlwachs.SATI","com.schollnick.indigoplugin.Survey","com.indigodomo.indigoserver", "com.karlwachs.shutdownAction", \
@@ -169,33 +169,43 @@ class Plugin(indigo.PluginBase):
             valuesDict["homeAway"]              = typeIdSplit[1]
             valuesDict["noDoors"]               = typeIdSplit[2]
             
-            valuesDict["doorsMembers"]                  = ""
-            valuesDict["devicesMembers"]                = ""
+            valuesDict["doorsMembers"]                  = "{}"
+            valuesDict["sensorsMembers"]                = "{}"
             valuesDict["triggerTimeLast"]               = 0 
-            valuesDict["devicesTrigger"]                = False
-            valuesDict["devicesTriggerTime"]            = 0
-            valuesDict["devicesCountTRUE"]              = 0
-            valuesDict["newOrExistingDevice"]           = "new"
+            valuesDict["sensorsTrigger"]                = False
+            valuesDict["sensorsTriggerTime"]            = 0
+            valuesDict["sensorsCountTRUE"]              = 0
+            valuesDict["newOrExistingSensor"]           = "new"
             valuesDict["newOrExistingDoor"]             = "new"
-            valuesDict["doorsTimeWindow"]               = "300"
-            valuesDict["doorsTimeWindowBeforeOrAfter"]  = "After"
+            valuesDict["doorsTimeWindowBefore"]         = "300"
+            valuesDict["doorsTimeWindowAfter"]          = "300"
             valuesDict["atleastOne"]                    = "2-1/0-1"
             valuesDict["lastDoorChange"]                = 0
-                        
-            self.devicesMembers ={}
+            self.SENSORSMembers ={}
             self.doorsMembers ={}
         else:
-            if "lastDoorChange" not in valuesDict:
-                valuesDict["lastDoorChange"]            = 0
+            if "lastDoorChange" not in valuesDict:        valuesDict["lastDoorChange"]            = 0
+            if "sensorsMembers" not in valuesDict:        valuesDict["sensorsMembers"]            = "{}"
+            if "doorsMembers" not in valuesDict:          valuesDict["doorsMembers"]              = "{}"
+            if "sensorsTrigger" not in valuesDict:        valuesDict["sensorsTrigger"]            = False
+            if "sensorsTriggerTime" not in valuesDict:    valuesDict["sensorsTriggerTime"]        = 0
+            if "sensorsCountTRUE" not in valuesDict:      valuesDict["sensorsCountTRUE"]          = 0
+            if "newOrExistingSensor" not in valuesDict:   valuesDict["newOrExistingSensor"]       = "new"
+            if "newOrExistingDoor" not in valuesDict:     valuesDict["newOrExistingDoor"]         = "new"
+            if "doorsTimeWindowBefore" not in valuesDict: valuesDict["doorsTimeWindowBefore"]     = "300"
+            if "atleastOne" not in valuesDict:            valuesDict["atleastOne"]                = "2-1/10-1"
+            if "lastDoorChange" not in valuesDict:        valuesDict["lastDoorChange"]            = 0
             valuesDict["oneAll"]                        = typeIdSplit[0]
             valuesDict["homeAway"]                      = typeIdSplit[1]
             valuesDict["noDoors"]                       = typeIdSplit[2]
-            self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(json.loads(valuesDict["devicesMembers"]))
+            self.SENSORSMembers, valuesDict["sensorsMembers"] = self.fixDICTEmpty(json.loads(valuesDict["sensorsMembers"]))
 
             self.doorsMembers,   valuesDict["doorsMembers"]   = self.fixDICTEmpty(json.loads(valuesDict["doorsMembers"]))
 
         if typeIdSplit[2] == "no":
             valuesDict["newOrExistingDoor"]   = "no"
+
+        #self.deviceConditionID =""                        
         
         return super(Plugin, self).getEventConfigUiValues(valuesDict, typeId, targetId)
 
@@ -215,51 +225,75 @@ class Plugin(indigo.PluginBase):
             xList.append(( unicode(var.id),var.name+"   ; currentV: "+ var.value))
         xList.append(("0","==== off, do not use ===="))
         return xList
+ 
+  ####-----------------  ---------
+    def filterDevices(self, filter, valuesDict, typeId, targetId):
+        xList =[]
+        for dev in indigo.devices:
+            xList.append(( unicode(dev.id),dev.name))
+        xList.append(("0","==== off, do not use ===="))
+        return xList
+    ####-----------------  ---------
+    def buttonConfirmDeviceStateCALLBACK(self, valuesDict, typeId, devId):
+        #self.deviceConditionID = valuesDict["deviceConditionID"]
+        return valuesDict
+
+  ####-----------------  ---------
+    def filterDevStates(self, filter, valuesDict, typeId, targetId):
+        xList =[]
+        if len(valuesDict) < 2:                         return [("0","")]
+        if "deviceConditionID" not in valuesDict:       return [("0","")]
+        if valuesDict["deviceConditionID"] in ["0",""]: return [("0","")]
+        dev = indigo.devices[int(valuesDict["deviceConditionID"])]
+        for state in dev.states:
+            xList.append((state,state+"   ; currentV: "+unicode(dev.states[state]) ))
+        xList.append(("0","==== off, do not use ===="))
+        return xList
 
 
    ####-----------------  --------- DEVICES
    ####-----------------  ---------
-    def filterDevicesEvent(self, filter, valuesDict, typeId, targetId):
+    def filterSensorsEvent(self, filter, valuesDict, typeId, targetId):
         xList =[]
-        #indigo.server.log("filterDevicesEvent:  typeId: "+ unicode(typeId)+"  targetId:"+ unicode(targetId)+"  valuesDict:"+unicode(valuesDict))
+        #indigo.server.log("filterSensorsEvent:  typeId: "+ unicode(typeId)+"  targetId:"+ unicode(targetId)+"  valuesDict:"+unicode(valuesDict))
         if len(valuesDict) == 0: 
-            #indigo.server.log("filterDevicesEvent:  vd empty returning")
+            #indigo.server.log("filterSensorsEvent:  vd empty returning")
             return xList
 
         if filter == "existing":
-            for DEVICEid in self.devicesMembers:
-                xList.append(( DEVICEid, self.DEVICES[DEVICEid]["name"]+"-"+DEVICEid.split(":::")[1]))
+            for DEVICEid in self.SENSORSMembers:
+                xList.append(( DEVICEid, self.SENSORS[DEVICEid]["name"]+"-"+DEVICEid.split(":::")[1]))
 
         else:
-            for DEVICEid in self.DEVICES:
-                if DEVICEid not in self.devicesMembers: 
+            for DEVICEid in self.SENSORS:
+                if DEVICEid not in self.SENSORSMembers: 
                     dd = DEVICEid.split(":::")
-                    xList.append(( DEVICEid, self.DEVICES[DEVICEid]["name"]+"-"+DEVICEid.split(":::")[1] ))
+                    xList.append(( DEVICEid, self.SENSORS[DEVICEid]["name"]+"-"+DEVICEid.split(":::")[1] ))
 
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "xList "+ str(xList), mType="filterDevicesEvent" )
+            self.ML.myLog(text = "xList "+ str(xList), mType="filterSensorsEvent" )
         return xList
 
 
     ####-----------------  ---------
-    def buttonConfirmRemoveDeviceMemberCALLBACK(self, valuesDict, typeId, devId):
+    def buttonconfirmRemoveSensorMemberCALLBACK(self, valuesDict, typeId, devId):
         try:
-            if valuesDict["newOrExistingDevice"] !="delete": return 
-            if len(valuesDict["selectExistingDevice"]) > 5:
-                if valuesDict["selectExistingDevice"] in self.devicesMembers:
-                    del self.devicesMembers[valuesDict["selectExistingDevice"]]
-                    self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(self.devicesMembers)
+            if valuesDict["newOrExistingSensor"] !="delete": return 
+            if len(valuesDict["selectExistingSensor"]) > 5:
+                if valuesDict["selectExistingSensor"] in self.SENSORSMembers:
+                    del self.SENSORSMembers[valuesDict["selectExistingSensor"]]
+                    self.SENSORSMembers, valuesDict["sensorsMembers"] = self.fixDICTEmpty(self.SENSORSMembers)
         except Exception, e:
             self.ML.myLog( text =u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
         return valuesDict
 
     ####-----------------  ---------
-    def buttonConfirmDeviceSettingsCALLBACK(self, valuesDict, typeId, devId):
+    def buttonConfirmSensorSettingsCALLBACK(self, valuesDict, typeId, devId):
         valuesDict["msg"]                       = "settings saved"
-        if valuesDict["newOrExistingDevice"] in ["new","existing"]:   
-            if valuesDict["selectNewDevice"] not in self.devicesMembers:
-                self.devicesMembers[valuesDict["selectNewDevice"]] =""
-                self.devicesMembers, valuesDict["devicesMembers"] = self.fixDICTEmpty(self.devicesMembers)
+        if valuesDict["newOrExistingSensor"] in ["new","existing"]:   
+            if valuesDict["selectNewSensor"] not in self.SENSORSMembers:
+                self.SENSORSMembers[valuesDict["selectNewSensor"]] =""
+                self.SENSORSMembers, valuesDict["sensorsMembers"] = self.fixDICTEmpty(self.SENSORSMembers)
         else:
             valuesDict["msg"]                       = "error"
         return valuesDict
@@ -340,7 +374,7 @@ class Plugin(indigo.PluginBase):
         self.getDebugSettings(init=False, theDict=valuesDict)
         self.checkPluginsForUpdates()
         
-        self.saveDEVICES()
+        self.saveSENSORS()
 
         return True, valuesDict
 
@@ -446,77 +480,124 @@ class Plugin(indigo.PluginBase):
      # menues   ==> plugin Menu
 ######################################################################################
 
-
-######################################################################################
-    ####--------menu items  
-######################################################################################
         
+    ####-----------------  ---------
     def printHELP(self,valuesDict,typeId):
         indigo.server.log("\n\
-Purpose of the plugin:\n\
-create reliable info for home away status by using regular on/of devices and DOOR info to time gate the status changes\n\
-It combines the info of several sensors with an AND (all must be up / down) and applies a time gate of the DOOR info to trigger \n\
-home / away events\n\
-Details\n\
-==1. collect info from other ON/off(UP/down..) devices that broadcast their states eg piBeacon, fingscan, UniFi.\n\
-That info can be combined into groups to define away / home status (oneHome, allHome, oneAway, allAway) for the group of devices (individual, family, guests)\n\
-Together with expiration/delay times that can be set to allow a state going from UP/down/UP on a per device and or a per EVENT basis.\n\
-The ON/off devices must be from a plugin that braodcasts their states = support indigo internal BC-API. THIS pugin will subscribe to their broadcasts.\n\
-The plugin can set variables with the number of devices ON/off (set in config)\n\
-==2. THEN you can add devices like a DOOR open/close type (from alarm plugins or zwave/ insteon sensors) to set a time window for changes of the ON/off devices to be considered.\n\
-eg if a pibeacon goes ON to off and no door was opened in eg  +- 2 minutes the away trigger would not fire.\n\
-The Door devices can be any device with an On/off .. 1/0 state. They are polled on a regular basis(set in config)\n\
-Examples:\n\
-Use your door sensor as DOOR device, set Time Window to 2 minutes\n\
-Use 1 or n iBeacons and or iphone Unifi / fingscan devices as 'DEVICEs'\n\
-Set delay before trigger to 5 seconds - to avoid on/off/on scenarious\n\
-1. Then, when you physically exit the door device starts its time window (x minutes before and after)\n\
-if the eg ibeacons/iPhone goes off within  2 minutes One/all Away condition is True and the event gets triggered\n\
-2. When coming back iBeacon/iPhone goes on, but does not set Home condition, only after the door opens (within 2 minutes) the One/All home condition is met.\n\
-You define the EVENTS in Indigo add new Trigger where you select \n\
-Type = homeAway\n\
-Event = All/One Device(s) must be ... home /Away\n\
-you can use OneAway/Home or allAway/Home triggers for you or your family iBeacons/ iPhones\n\
-======= initial setup =======\n\
---0. in config set basic parameters like repeat times, variables names, debug levels\n\
---1. define the plugins that participate(Broadcast)  (menu)\n\
---2. define the ON/off devices (menu) from these plugins you want to use\n\
---3. define the DOOR type devices (menu) from any ON/off device\n\
---4. Create a Trigger using the plugin configured EVENTS/events and subtypes (one/all/ home/away door/noDoor.. ) that can use one or many of the above defined devices to trigger actions\n\
-")
+# HOME AWAY plugin for indigo\n\
+\n\
+## Purpose \n\
+define **triggers** that allow a combination of information from different indigo devices (sensors) to be combined to set home / away events.\n\
+It can be combined with a door time gate and other variable or device/state conditions to veto a trigger \n\
+\n\
+## What / how\n\
+The plugin can currently use info from fingscan(any ip device), unifi(any ip device) and pibeacon devices(ibeacons, BLE devices ..) called sensors in the following. \n\
+Any plugin that can send *indigo broadcasts* could participate.\n\
+Thesensor are combined with an \"AND\" to indicate how many sensors have come home or went away . NOT how many are home or are away - a slight difference. \n\
+A snapshot would poll all devices and add their states. \n\
+This plugin will receive updates on changes and then determine if a sensor went away or came home. \n\
+THEN it determines how many came home / went away.\n\
+In addition the plugin can use information from any other on/off type device (called doors in the followoing) to set a time gate function:\n\
+only accept a come home or go away sensor change if the door was opened/closed x seconds before or y seconds after the sensor device came home or went away.\n\
+This will reduce the false positives / negatives. Only when the door opens/ closes it will accpt a change in a sensor state.\n\
+\n\
+## Event types\n\
+the plugin supports:\n\
+* **all home** all devices must have come home\n\
+* **one home** at least one device just came home \n\
+* **xx home with door gate** same as above, but the door must have opened or closed before / after the sensor(s) came home and the same for away\n\
+* **all away** all devices must have went away\n\
+* **one away** at least one device just went away\n\
+* **xx away with door gate** same as above, but the door must have opened or closed before / after the sensor(s) went away\n\
+\n\
+## Parameters\n\
+###in config you can set some timing parameters: how often should events be checked etc.\n\
+\n\
+### In Menue you can set:\n\
+* **which plugin to listen to** select from all indigo plugins which it should listen to \n\
+* **accept new sensors automatically**  collect all sensors that send broadcasts and add to internal list, or keep it static/manual \n\
+* **define sensors** define plugin / device / state that make up the sensor list (pick from above collected list) \n\
+* **define doors** define the indigo device /states that are used as door devices. You can also specify the polling interval.\n\
+* **print** this help and a dump of events, sensors, and door definitions and current states.\n\
+\n\
+### In trigger edit\n\
+you can set various timing parameters and select which of the doors and sensors you want to use for THIS event trigger\n\
+first you select event type: all/one home;  all/oneaway \n\
+* **min time between 2 triggers** to avoid multiple triggers for one comming home / going away event\n\
+* **trigger delay** wait some seconds to make sure the sensor state does not change.. to avoid false positives\n\
+* **reset sensor** for a home event a sensor will stay home until it leaves AND a door open/close happens\n\
+This option allows to have the sensor reset its state to away (for home events and visa versa for away events) without the door event\n\
+* **variable condition** you can add a test on any variable <,<=, ==, >=, > \"in\" a test value. If not true the event will not trigger\n\
+* **device/state condition** you can add a test on any device/state <,<=, ==, >=, > \"in\" a test value. If not true the event will not trigger\n\
+* **select/delete sensors** then manage the sensors (one or many) that are part of this event group.\n\
+* **select/delete doors** then manage doors (eg front and back door) that define the door time gate. You can set a before and an after time window \n\
+\n\
+## First steps\n\
+* install plugin\n\
+* set config parameters\n\
+* in menu define plugins, sensors, and doors\n\
+* create an indigo trigger, select homeAway / and your event type eg all/one home // away\n\
+* set parameters and select sensors that participate in THIS trigger \n\
+* add door if desired\n\
+* add device/state or variable condition veto/ enable if desired.")
 
+    ####-----------------  ---------
     def printEVENTS(self,valuesDict,typeId):
+        self.ML.myLog(text ="")
         self.ML.myLog(text =" ==== EVENTs ============ ")
         for item in indigo.triggers.iter(self.pluginId):
             valuesDict = self.printEVENT(valuesDict,typeId,item)
         return valuesDict
 
+    ####-----------------  ---------
     def printEVENT(self,valuesDict,typeId,item):
         props = item.pluginProps
-        self.ML.myLog(text ="ev id: "+ unicode(item.id).ljust(12)+ "; ev Type: "+item.pluginTypeId +" ==== EVENT",mType=item.name+"==")
+        self.ML.myLog(text ="===== EVENT id: "+ unicode(item.id).ljust(12)+ ";  Type: "+item.pluginTypeId +" ==== EVENT",mType=item.name+"==")
         for prop in self.evPropsToPrint:
             if prop not in props: continue
-            if prop == "variableConditionID" and props[prop] not in ["0",""]: 
+            if prop == "variableConditionID" and len(props[prop]) > 2: 
                 var = indigo.variables[int(props[prop])]
-                out = "Variable condition name" .ljust(30)  + ": "+ var.name
+                out = "CONDITION Variable" .ljust(30)  + ": "+ var.name
                 self.ML.myLog(text = out,mType="EVENTS")
-                out = "Variable value to trigger" .ljust(30)+ ": "+ props["variableConditionValue"]+" =-= currentValue: "+var.value
+                out = "    value to compare" .ljust(30)+ ": \""+ props["variableConditionValue"]+"\"  "+ props["variableConditionComp"]+"  \""+var.value+"\" (currentValue)"
+            elif prop == "deviceConditionID" and len(props[prop]) > 2: 
+                dev = indigo.devices[int(props[prop])]
+                out = "CONDITION Device" .ljust(30)  + ": "+ dev.name+";    state: "+ unicode(props["deviceConditionSTATE"])
+                self.ML.myLog(text = out,mType="EVENTS")
+                out  = "    value to compare" .ljust(30)+ ": \""+ props["deviceConditionValue"]
+                out += "\"  "+ props["deviceConditionComp"]
+                if "deviceConditionSTATE" in props and props["deviceConditionSTATE"] in dev.states:
+                    out += "  \""+unicode(dev.states[props["deviceConditionSTATE"]])+"\""
+                    out +=" (currentValue)"
+                else: out += "  no state defined "
+            elif prop == "doorsTimeWindowBefore": 
+                out  = "doors time window" .ljust(30)+ ": [-"+ props["doorsTimeWindowBefore"]+" , "+props["doorsTimeWindowAfter"] +"] seconds"
+            elif prop == "doorsTimeWindowAfter":
+                continue 
+            elif prop in ["sensorsTriggerTime","triggerTimeLast","lastsyncWithDevices"]: 
+                out  = prop.ljust(30)+ ": %.1f"%(float(props[prop])) +"[tt-sec];   .. before now: %.1f"%(time.time() - float(props[prop]))+"[sec]"
+            elif prop == "atleastOne": 
+                out  = prop.ljust(30)+ ": accepted transitions: "
+                if props[prop].find("2-1") >-1: out+= " from 2 to 1 device;"
+                if props[prop].find("0-1") >-1: out+= " from 0 to 1 device;"
             else:
                 out = prop.ljust(30)+ ": "+ unicode(props[prop])
             self.ML.myLog(text = out,mType="EVENTS")
         return valuesDict
 
 
-    def printDEVICES(self,valuesDict,typeId):
+    ####-----------------  ---------
+    def printSENSORS(self,valuesDict,typeId):
         propsToPrint =["up","down","valueForON","used"]
-        self.ML.myLog(text =" ==== DEVICEs============ ")
-        for DEVICEid in self.DEVICES:
-            self.ML.myLog(text ="ID: "+DEVICEid.split(":::")[0].ljust(12)+";  state: "+DEVICEid.split(":::")[1].ljust(15)+" plugin "+unicode(self.DEVICES[DEVICEid]["pluginId"]).ljust(20) +" ==== DEVICE",mType=self.DEVICES[DEVICEid]["name"]+"==")
+        self.ML.myLog(text =" ==== SENSORs============ ")
+        for DEVICEid in self.SENSORS:
+            self.ML.myLog(text ="ID: "+DEVICEid.split(":::")[0].ljust(12)+";  state: "+DEVICEid.split(":::")[1].ljust(15)+" plugin "+unicode(self.SENSORS[DEVICEid]["pluginId"]).ljust(20) +" ==== DEVICE",mType=self.SENSORS[DEVICEid]["name"]+"==")
             for prop in propsToPrint:
-                    self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(self.DEVICES[DEVICEid][prop]),mType="DEVICE")
+                    self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(self.SENSORS[DEVICEid][prop]),mType="SENSOR")
         return valuesDict
 
 
+    ####-----------------  ---------
     def printDOORS(self,valuesDict,typeId):
         propsToPrint =["lastM1Change","lastChange","lastChangeDT","signalReceived","state","used","requireStatusChange","pollingIntervall","lastCheck"]
         self.ML.myLog(text =" ==== DOORs ============ ")
@@ -526,35 +607,71 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                     self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(self.DOORS[DEVICEid][prop]),mType="DOOR")
         return valuesDict
 
+    ####-----------------  ---------
     def startEventTracking(self):
         self.ML.myLog(text =" enabled EventTracking")
         self.enableEventTracking = True
         return 
 
 
+    ####-----------------  ---------
     def stopEventTracking(self):
         self.ML.myLog(text =" disabled EventTracking ")
         self.enableEventTracking = False
         return 
 
 
+######################################################################################
+    ####--------menu item   sync EVENTS
+######################################################################################
+
+    ####-----------------  ---------
+    def syncEVENTSCALLBACK(self,valuesDict,typeId):
+        ev = self.enableEventTracking
+        self.enableEventTracking = true
+        for EVENT in indigo.triggers.iter(self.pluginId):
+            self.updateEventStatus(EVENT, source = "sync", doTrigger = False, sync = True)
+        self.enableEventTracking = ev 
+        return valuesDict
+
+    ####-----------------  ---------
+    def filterExistingEvents(self,  filter="self", valuesDict=None, typeId=""):
+        xList = []
+        for EVENT in indigo.triggers.iter(self.pluginId):
+            xList.append([EVENT.id, EVENT.name])
+        xList = sorted( xList, key=lambda x:(x[1]) )
+        return xList
+
+    ####-----------------  ---------
+    def buttonsyncEVENTCALLBACK(self,valuesDict,typeId):
+        ev = self.enableEventTracking
+        self.enableEventTracking = True
+        if "selectedEventToSync" in valuesDict and len(valuesDict["selectedEventToSync"]) > 2:
+            EVENT  = indigo.triggers[int(valuesDict["selectedEventToSync"])]
+            self.updateEventStatus(EVENT, source = "sync", doTrigger = False, sync = True)
+        self.enableEventTracking = ev 
+        return valuesDict
+
+
+
 
 ######################################################################################
     ####--------menu item   DEVICES 
 ######################################################################################
+    ####-----------------  ---------
     def filterExistingDevices(self,  filter="self", valuesDict=None, typeId="", targetId=0):
 
-        retList = []
+        xList = []
 
-        for DEVICEid in self.DEVICES:
+        for DEVICEid in self.SENSORS:
             if len(DEVICEid) < 3: continue
             exDevState = DEVICEid.split(":::")
             indigoID = exDevState[0]
             dev = indigo.devices[int(indigoID)]
-            retList.append([indigoID, dev.name])
-        retList = sorted( retList, key=lambda x:(x[1]) )
-        retList.append((0,">>>> Pick new Device/Variable"))
-        return retList
+            xList.append([indigoID, dev.name])
+        xList = sorted( xList, key=lambda x:(x[1]) )
+        xList.append((0,">>>> Pick new Device/Variable"))
+        return xList
 
     ####-----------------  ---------
     def getQualifiedDevices(self):
@@ -569,7 +686,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                 if unicode(dev.states[state]).lower() in self.acceptableStateValues:
                     self.qualifiedDevices[id] = [dev.name,dev.pluginId]
                     break
-        for DEVICEid in self.DEVICES:
+        for DEVICEid in self.SENSORS:
             id = DEVICEid.split(":::")[0]
             if id in self.qualifiedDevices: continue
             try: 
@@ -593,15 +710,15 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     ####-----------------  ---------
     def buttonConfirmExistingOrNewDeviceCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
-        self.DeviceSelected = valuesDict["selectedExistingOrNewDevice"]
+        self.SENSORSelected = valuesDict["selectedExistingOrNewDevice"]
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "IndigoID "+ self.DeviceSelected +"  "+unicode(valuesDict), mType="butConfirmExistingOrNewDevice")
+            self.ML.myLog(text = "IndigoID "+ self.SENSORSelected +"  "+unicode(valuesDict), mType="butConfirmExistingOrNewDevice")
         valuesDict["selectStatesOK"]       = False
         valuesDict["text1-1"]              = "  and then confirm !"
         valuesDict["text1-2"]              = "  and then confirm !"
 
         try:
-            if self.DeviceSelected == "0":
+            if self.SENSORSelected == "0":
                 valuesDict["DefineDevicesAndNew"]  = True
                 valuesDict["DefineDevicesAndOld"]  = False
                 valuesDict["msg"]                  = "device NOT selected"
@@ -620,20 +737,20 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def buttonConfirmDeleteDeviceCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "IndigoID "+ str(self.DeviceSelected) +"  "+unicode(valuesDict), mType="butConfirmDeleteDevice")
+            self.ML.myLog(text = "IndigoID "+ str(self.SENSORSelected) +"  "+unicode(valuesDict), mType="butConfirmDeleteDevice")
         valuesDict["DefineDevicesAndNew"]  = False
         valuesDict["DefineDevicesAndOld"]  = False
         valuesDict["selectStatesOK"]       = False
 
         try:
-            if self.DeviceSelected !="0":
+            if self.SENSORSelected !="0":
                 deldev = {}
-                for DEVICEid in self.DEVICES:
-                    if self.DeviceSelected == DEVICEid.split(":::")[0]:
+                for DEVICEid in self.SENSORS:
+                    if self.SENSORSelected == DEVICEid.split(":::")[0]:
                         deldev[DEVICEid] = True
-                for DEVICEid in self.DEVICES:
-                    del self.DEVICES[DEVICEid]
-                self.saveDEVICES()
+                for DEVICEid in self.SENSORS:
+                    del self.SENSORS[DEVICEid]
+                self.saveSENSORS()
                 valuesDict["msg"]                  = "device deleted"
             
         except  Exception, e:
@@ -645,15 +762,15 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def buttonConfirmDeviceNewCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "IndigoID "+ self.DeviceSelected +"  "+unicode(valuesDict), mType="butConfirmExistingDevice")
-        self.DeviceSelected = valuesDict["selectedNewDeviceID"]
+            self.ML.myLog(text = "IndigoID "+ self.SENSORSelected +"  "+unicode(valuesDict), mType="butConfirmExistingDevice")
+        self.SENSORSelected = valuesDict["selectedNewDeviceID"]
         valuesDict["selectStatesOK"]       = False
         valuesDict["DefineDevicesAndNew"]  = False
         valuesDict["DefineDevicesAndOld"]  = False
     
 
         try:
-            if self.DeviceSelected !="0":
+            if self.SENSORSelected !="0":
                 valuesDict["DefineDevicesAndOld"]  = False
                 valuesDict["DefineDevicesAndNew"]  = False
                 valuesDict["selectStatesOK"]       = True
@@ -675,18 +792,18 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def filterStates(self,  filter="self", valuesDict=None, typeId="", targetId=0):
 
         retList = []
-        if self.DeviceSelected =="0": return retList
+        if self.SENSORSelected =="0": return retList
 
         selectedState =""
 
-        for DEVICEid in self.DEVICES:
+        for DEVICEid in self.SENSORS:
             if len(DEVICEid) < 3: continue
             exDevState = DEVICEid.split(":::")
-            if self.DeviceSelected  == exDevState[0]:
+            if self.SENSORSelected  == exDevState[0]:
                 selectedState = exDevState[1]
                 break
 
-        dev = indigo.devices[int(self.DeviceSelected)]
+        dev = indigo.devices[int(self.SENSORSelected)]
         for state  in dev.states:
             stValue = unicode(dev.states[state])
             if stValue.lower() not in self.acceptableStateValues: continue
@@ -706,28 +823,28 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     def buttonConfirmStateCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "IndigoID "+ str(self.DeviceSelected) +"  "+unicode(valuesDict), mType="butConfirmState")
+            self.ML.myLog(text = "IndigoID "+ str(self.SENSORSelected) +"  "+unicode(valuesDict), mType="butConfirmState")
         valuesDict["selectStatesOK"]       = False
         valuesDict["DefineDevicesAndNew"]  = False
         valuesDict["DefineDevicesAndOld"]  = False
 
         try:
-            if self.DeviceSelected !="0":
-                DEVICEid = self.DeviceSelected+":::"+valuesDict["selectedState"]
+            if self.SENSORSelected !="0":
+                DEVICEid = self.SENSORSelected+":::"+valuesDict["selectedState"]
 
-                if DEVICEid not in self.DEVICES:
-                    self.DEVICES[DEVICEid] = copy.copy(self.emptyDEVICE)
-                dev = indigo.devices[int(self.DeviceSelected)]
-                self.DEVICES[DEVICEid]["pluginId"]          = dev.pluginId
-                self.DEVICES[DEVICEid]["name"]              = dev.name
-                self.DEVICES[DEVICEid]["state"]             = valuesDict["selectedState"]
-                try: self.DEVICES[DEVICEid]["up"]["delayTime"]   = float(valuesDict["homeDelay"])
+                if DEVICEid not in self.SENSORS:
+                    self.SENSORS[DEVICEid] = copy.copy(self.emptyDEVICE)
+                dev = indigo.devices[int(self.SENSORSelected)]
+                self.SENSORS[DEVICEid]["pluginId"]          = dev.pluginId
+                self.SENSORS[DEVICEid]["name"]              = dev.name
+                self.SENSORS[DEVICEid]["state"]             = valuesDict["selectedState"]
+                try: self.SENSORS[DEVICEid]["up"]["delayTime"]   = float(valuesDict["homeDelay"])
                 except: pass
-                try:self.DEVICES[DEVICEid]["down"]["delayTime"] = float(valuesDict["awayDelay"]) 
+                try:self.SENSORS[DEVICEid]["down"]["delayTime"] = float(valuesDict["awayDelay"]) 
                 except: pass
 
                 valuesDict["msg"]                  = "device / state selected and saved"
-            self.saveDEVICES()
+            self.saveSENSORS()
             
         except  Exception, e:
             self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
@@ -826,7 +943,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                     if self.DoorSelected == DEVICEid.split(":::")[0]:
                         deldev[DEVICEid] = True
                 for DEVICEid in deldev:
-                    del self.DEVICES[DEVICEid]
+                    del self.DOORS[DEVICEid]
                 self.saveDOORS()
                 valuesDict["msg"]                  = "device deleted"
             
@@ -970,7 +1087,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
 
                 if len(self.updateEVENTS) > 0 or (time.time() - self.lastEventUpdate > self.eventUpdateWait):
                     self.periodCheckDEVICES() # check if trigeredDOWN --> AWAY etc 
-                    self.updateEVENTStatus(source="period")  # check if events are triggerd from delayed changes in devices
+                    self.updateEventsStatus(source="period")  # check if events are triggerd from delayed changes in devices
 
                 if (time.time() - self.lastPluginCheckUpdate > 300):
                     self.checkPluginsForUpdates() # check if plugins defs are stiil ok 
@@ -996,40 +1113,40 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
 ######################################################################################
     # DEVICE status , by polling 
 ######################################################################################
-    ####-----------------check DEVICES if they chnaged whil not up, update if needed ---------
+    ####-----------------check DEVICES if they chnaged while not up, update if needed ---------
     def getDEVICEstates(self):
         update= False
         
         try:
-            for DEVICEid in self.DEVICES:
+            for DEVICEid in self.SENSORS:
                 devState = DEVICEid.split(":::")
                 dev = indigo.devices[int(devState[0])]
                 lastChangedDT = dev.lastChanged
                 lastChanged = time.mktime(lastChangedDT.timetuple())
                 newST = dev.states[devState[1]]
-                UP = (unicode(newST) == self.DEVICES[DEVICEid]["valueForON"])
+                UP = (unicode(newST) == self.SENSORS[DEVICEid]["valueForON"])
                 
                 if self.enableEventTracking or self.ML.decideMyLog(u"SETUP"): 
                     self.ML.myLog(text = "getDEVICEstates    DEVICEid "+DEVICEid.ljust(20)+"  lastDT:"+unicode(lastChangedDT) +"   "+
-                    unicode(int(lastChanged)) +" == last  "+unicode(int(self.DEVICES[DEVICEid]["up"]["lastChange"]))+"  "+
-                    " delta  "+unicode(int(lastChanged - self.DEVICES[DEVICEid]["up"]["lastChange"])).rjust(10)+"  "+
-                    "; ex-Tf: "+ unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"]) +
-                    "; upd?: "+unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"] != UP ) +
+                    unicode(int(lastChanged)) +" == last  "+unicode(int(self.SENSORS[DEVICEid]["up"]["lastChange"]))+"  "+
+                    " delta  "+unicode(int(lastChanged - self.SENSORS[DEVICEid]["up"]["lastChange"])).rjust(10)+"  "+
+                    "; ex-Tf: "+ unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"]) +
+                    "; upd?: "+unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"] != UP ) +
                     "", mType = "getDEVICEstates" )
 
-                if  (  self.DEVICES[DEVICEid]["up"]["signalReceived"]   != UP):  
-                    self.DEVICES[DEVICEid]["up"]["lastChange"]          = lastChanged
-                    self.DEVICES[DEVICEid]["up"]["signalReceived"]      = UP
-                    self.DEVICES[DEVICEid]["up"]["state"]               = ""
-                    self.DEVICES[DEVICEid]["down"]["lastChange"]        = lastChanged
-                    self.DEVICES[DEVICEid]["down"]["signalReceived"]    = not UP
-                    self.DEVICES[DEVICEid]["down"]["state"]             = ""
+                if self.SENSORS[DEVICEid]["up"]["signalReceived"] != UP:  
+                    self.SENSORS[DEVICEid]["up"]["lastChange"]          = lastChanged
+                    self.SENSORS[DEVICEid]["up"]["signalReceived"]      = UP
+                    self.SENSORS[DEVICEid]["up"]["state"]               = ""
+                    self.SENSORS[DEVICEid]["down"]["lastChange"]        = lastChanged
+                    self.SENSORS[DEVICEid]["down"]["signalReceived"]    = not UP
+                    self.SENSORS[DEVICEid]["down"]["state"]             = ""
                     update= True
                     
-            if update: self.saveDEVICES()
+            if update: self.saveSENSORS()
         except  Exception, e:
                 if len(unicode(e)) > 5:
-                    indigo.server.log(u"getDEVICEstates in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e)+"\n" +unicode(self.DEVICES) )
+                    indigo.server.log(u"getDEVICEstates in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e)+"\n" +unicode(self.SENSORS) )
         return 
 
 
@@ -1108,140 +1225,110 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
             for msg in data:
                 upd = 0
                     
-                if "newValue"   not in msg: 
-                    if self.ML.decideMyLog(u"RECEIVE"): 
-                        self.ML.myLog( text = "msg no  newValue", mType="receiveDeviceChanged" )
-                    continue
-                if "valueForON" not in msg: 
-                    if self.ML.decideMyLog(u"RECEIVE"): 
-                        self.ML.myLog( text = "msg no  valueForON", mType="receiveDeviceChanged" )
-                    continue
-                if "action"     not in msg: 
-                    if self.ML.decideMyLog(u"RECEIVE"): 
-                        self.ML.myLog( text = "msg no  action", mType="receiveDeviceChanged" )
-                    continue
-                if "state"     not in msg: 
-                    if self.ML.decideMyLog(u"RECEIVE"): 
-                        self.ML.myLog( text = "msg no  state", mType="receiveDeviceChanged" )
-                    continue
+                if not self.checkParams(msg):continue
 
                 if msg["action"] == "event":
                     DEVICEid= str(msg["id"]) +":::"+ msg["state"]
 
-                    if DEVICEid not in self.DEVICES: # check if device was ignored, add to the devices dict
-                        if self.ML.decideMyLog(u"RECEIVE") and False: 
-                            self.ML.myLog( text = "DEVICEid not in DEVICES, skip", mType="receiveDeviceChanged" )
-                        if  self.autoAddDevices == "ON":
-                            self.DEVICES[DEVICEid] = copy.copy(self.emptyDEVICE)
-                            if ("name" not in msg or receivedPluginId =="" ) :
-                                dev = indigo.devices[int(msg["id"])]
-                                msg["name"] = dev.name
-                                receivedPluginId = dev.pluginId
-                            
-                            self.DEVICES[DEVICEid]["pluginId"]   = receivedPluginId
-                            self.DEVICES[DEVICEid]["valueForON"] = msg["valueForON"]
-                            self.DEVICES[DEVICEid]["name"]       = msg["name"]
-                            self.PLUGINS["used"][receivedPluginId] = True
-                            self.saveDEVICES()
-                            self.savePLUGINS()
+                    if DEVICEid not in self.SENSORS: # check if device was ignored, add to the devices dict
+                        self.addNewSensor(DEVICEid, msg)
                         continue
                     if self.ML.decideMyLog(u"RECEIVE"): 
                         self.ML.myLog( text = "msg:"+ str(msg) , mType="receiveDeviceChanged")
                     
-                    self.DEVICES[DEVICEid]["valueForON"] = msg["valueForON"]
-                    UP   = msg["newValue"] == msg["valueForON"]
-                    UPnew   = self.DEVICES[DEVICEid]["up"]["signalReceived"]    != UP
-                    DOWNnew = self.DEVICES[DEVICEid]["down"]["signalReceived"]  == UP
-                    save = 0
+                    self.SENSORS[DEVICEid]["valueForON"] = msg["valueForON"]
+                    UP      = msg["newValue"] == msg["valueForON"]
+                    UPnew   = self.SENSORS[DEVICEid]["up"]["signalReceived"]    != UP
+                    DOWNnew = self.SENSORS[DEVICEid]["down"]["signalReceived"]  == UP
+                    save = ["","","","","","","","",""]
+
                     if self.enableEventTracking  or  self.ML.decideMyLog(u"RECEIVE") : 
                             self.ML.myLog( text = "DEVICEid:accepted.. UP " +unicode(UP) +"  UPnew "+unicode(UPnew) +"  DOWNnew "+unicode(DOWNnew), mType="receiveDeviceChanged")
+
                     if UP:
                         if UPnew : 
-                            if self.DEVICES[DEVICEid]["up"]["state"] != "home": 
-                                self.DEVICES[DEVICEid]["up"]["state"] = "home"
-                                self.DEVICES[DEVICEid]["up"]["lastChange"] = time.time()
-                                upd = 2
+                            if self.SENSORS[DEVICEid]["up"]["state"] != "home": 
+                                self.SENSORS[DEVICEid]["up"]["state"] = "home"
+                                self.SENSORS[DEVICEid]["up"]["lastChange"] = time.time()
+                            save[0]="UU"
                         if DOWNnew:
-                            save = 1
-                            if self.DEVICES[DEVICEid]["down"]["state"] != "": 
-                                upd = max(1,upd)
-                                self.DEVICES[DEVICEid]["down"]["state"] = ""
-                                self.DEVICES[DEVICEid]["down"]["lastChange"] = time.time()
-                                if self.DEVICES[DEVICEid]["up"]["delayTime"] == 0 or self.DEVICES[DEVICEid]["down"]["delayTime"] == 0 : upd = 2
+                            save[1]="UD"
+                            if self.SENSORS[DEVICEid]["down"]["state"] != "": 
+                                self.SENSORS[DEVICEid]["down"]["state"] = ""
+                                self.SENSORS[DEVICEid]["down"]["lastChange"] = time.time()
+                                if self.SENSORS[DEVICEid]["up"]["delayTime"] == 0 or self.SENSORS[DEVICEid]["down"]["delayTime"] == 0 : save[2]="NOW"
                     
                     if not UP: 
                         if  UPnew : 
-                            if self.DEVICES[DEVICEid]["up"]["state"] == "home": 
-                                save +=2
-                                upd = max(1,upd)
-                                self.DEVICES[DEVICEid]["up"]["state"] = "triggeredDOWN"
-                                self.DEVICES[DEVICEid]["up"]["lastChange"] = time.time()
-                                if self.DEVICES[DEVICEid]["up"]["delayTime"] == 0 or self.DEVICES[DEVICEid]["down"]["delayTime"] == 0 : upd = 2
+                            if self.SENSORS[DEVICEid]["up"]["state"] == "home": 
+                                save[3]="DU"
+                                self.SENSORS[DEVICEid]["up"]["state"] = "triggeredDOWN"
+                                self.SENSORS[DEVICEid]["up"]["lastChange"] = time.time()
+                                if self.SENSORS[DEVICEid]["up"]["delayTime"] == 0 or self.SENSORS[DEVICEid]["down"]["delayTime"] == 0 : save[2]="NOW"
                     
                         if  DOWNnew: 
-                            if self.DEVICES[DEVICEid]["down"]["state"] != "triggeredDOWN": 
-                                save +=4
-                                upd = max(1,upd)
-                                self.DEVICES[DEVICEid]["down"]["state"] = "triggeredDOWN"
-                                self.DEVICES[DEVICEid]["down"]["lastChange"] = time.time()
-                                if self.DEVICES[DEVICEid]["up"]["delayTime"] == 0 or self.DEVICES[DEVICEid]["down"]["delayTime"] == 0 : upd = 2
+                            if self.SENSORS[DEVICEid]["down"]["state"] != "triggeredDOWN": 
+                                save[4]="DD"
+                                self.SENSORS[DEVICEid]["down"]["state"] = "triggeredDOWN"
+                                self.SENSORS[DEVICEid]["down"]["lastChange"] = time.time()
+                                if self.SENSORS[DEVICEid]["up"]["delayTime"] == 0 or self.SENSORS[DEVICEid]["down"]["delayTime"] == 0 : save[2]="NOW"
 
-                    if self.DEVICES[DEVICEid]["up"]["signalReceived"]   != UP:  save +=8
-                    if self.DEVICES[DEVICEid]["down"]["signalReceived"] == UP:  save +=16
-                    self.DEVICES[DEVICEid]["up"]["signalReceived"]    = UP
-                    self.DEVICES[DEVICEid]["down"]["signalReceived"]  = not UP
+                    if self.SENSORS[DEVICEid]["up"]["signalReceived"]   != UP:  save[5]="US"
+                    if self.SENSORS[DEVICEid]["down"]["signalReceived"] == UP:  save[6]="DS"
+                    self.SENSORS[DEVICEid]["up"]["signalReceived"]    = UP
+                    self.SENSORS[DEVICEid]["down"]["signalReceived"]  = not UP
 
-                    if save>0 or upd >0: self.saveDEVICES()
-                    if (self.enableEventTracking and save>0 ) or  self.ML.decideMyLog(u"RECEIVE") : 
+                    if save != ["","","","","","","","",""]: self.saveSENSORS()
+                    if self.enableEventTracking or  (self.ML.decideMyLog(u"RECEIVE") and save != ["","","","","","","","",""] ) : 
                         dd = DEVICEid.split(":::")
                         self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
-                    "; stateUP:"+self.DEVICES[DEVICEid]["up"]["state"].ljust(13)+
-                    "; signRecUP:"+unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"]).ljust(6)+
-                    "; lChgUP:%6.1f"%(min(time.time()-self.DEVICES[DEVICEid]["up"]["lastChange"],9999))+
-                    "; stateDN:"+self.DEVICES[DEVICEid]["down"]["state"].ljust(13)+
-                    "; signRecDN:"+unicode(self.DEVICES[DEVICEid]["down"]["signalReceived"]).ljust(6)+
-                    "; lChgDN:%6.1f"%(min(time.time()-self.DEVICES[DEVICEid]["down"]["lastChange"],9999))+
-                    "; save:%d"%(save)+
+                    "; stateUP:"+self.SENSORS[DEVICEid]["up"]["state"].ljust(13)+
+                    "; signRecUP:"+unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"]).ljust(6)+
+                    "; lChgUP:%6.1f"%(min(time.time()-self.SENSORS[DEVICEid]["up"]["lastChange"],9999))+
+                    "; stateDN:"+self.SENSORS[DEVICEid]["down"]["state"].ljust(13)+
+                    "; signRecDN:"+unicode(self.SENSORS[DEVICEid]["down"]["signalReceived"]).ljust(6)+
+                    "; lChgDN:%6.1f"%(min(time.time()-self.SENSORS[DEVICEid]["down"]["lastChange"],9999))+
+                    "; save:%s"%unicode(save)+
                     "",     mType="rcvBC:"+msg["name"])
                     self.updateDeviceStatus(DEVICEid,periodCheck="devChg", callEvent=(upd==2)) # set new status now 
         except Exception, e:
             indigo.server.log(u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
-
+        
     ####-----------------  update device status  ---------
     def periodCheckDEVICES(self):
-        for DEVICEid in self.DEVICES:
+        for DEVICEid in self.SENSORS:
             self.updateDeviceStatus(DEVICEid, periodCheck="period")
         return 
         
     ####-----------------  update individual device status  ---------
     def updateDeviceStatus(self, DEVICEid, periodCheck="",callEvent=False):
         try:
-            if DEVICEid not in self.DEVICES: return 
-            save = 0
-            if self.DEVICES[DEVICEid]["up"]["state"] == "triggeredDOWN": 
-                if time.time() - self.DEVICES[DEVICEid]["up"]["lastChange"] > self.DEVICES[DEVICEid]["up"]["delayTime"]: 
-                    self.DEVICES[DEVICEid]["up"]["lastChange"] = time.time() 
-                    self.DEVICES[DEVICEid]["up"]["state"] = ""
-                save = 1        
+            if DEVICEid not in self.SENSORS: return 
+            save = ["","",""]
+            if self.SENSORS[DEVICEid]["up"]["state"] == "triggeredDOWN": 
+                if time.time() - self.SENSORS[DEVICEid]["up"]["lastChange"] > self.SENSORS[DEVICEid]["up"]["delayTime"]: 
+                    self.SENSORS[DEVICEid]["up"]["lastChange"] = time.time() 
+                    self.SENSORS[DEVICEid]["up"]["state"] = ""
+                save[0] = "UTD-x"        
 
-            if self.DEVICES[DEVICEid]["down"]["state"] == "triggeredDOWN": 
-                if time.time() - self.DEVICES[DEVICEid]["down"]["lastChange"] > self.DEVICES[DEVICEid]["down"]["delayTime"]:
-                    self.DEVICES[DEVICEid]["down"]["lastChange"] = time.time() 
-                    self.DEVICES[DEVICEid]["down"]["state"] = "away"
-                save +=2        
-            if save or callEvent: 
-                self.saveDEVICES()
-                self.updateEVENTStatus(source=periodCheck)
-            if (self.enableEventTracking and save>0 ) or  self.ML.decideMyLog(u"RECEIVE") : 
+            if self.SENSORS[DEVICEid]["down"]["state"] == "triggeredDOWN": 
+                if time.time() - self.SENSORS[DEVICEid]["down"]["lastChange"] > self.SENSORS[DEVICEid]["down"]["delayTime"]:
+                    self.SENSORS[DEVICEid]["down"]["lastChange"] = time.time() 
+                    self.SENSORS[DEVICEid]["down"]["state"] = "away"
+                save[1] = "DTD-x"        
+            if save != ["","","","","","","","",""] or callEvent: 
+                self.saveSENSORS()
+                self.updateEventsStatus(source=periodCheck)
+            if self.enableEventTracking  or  ( self.ML.decideMyLog(u"RECEIVE") and save != ["","",""]  ): 
                 dd = DEVICEid.split(":::")
                 self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
-                    ";  stateUP:"+self.DEVICES[DEVICEid]["up"]["state"].ljust(13)+
-                    ";  signRecUP:"+unicode(self.DEVICES[DEVICEid]["up"]["signalReceived"])[0]+
-                    ";  lChgUP:%5.1f"%(min(time.time()-self.DEVICES[DEVICEid]["up"]["lastChange"],999))+
-                    ";  stateDN:"+self.DEVICES[DEVICEid]["down"]["state"].ljust(13)+
-                    ";  signRecDN:"+unicode(self.DEVICES[DEVICEid]["down"]["signalReceived"])[0]+
-                    ";  lChgDN:%5.1f"%(min(time.time()-self.DEVICES[DEVICEid]["down"]["lastChange"],999))+
-                    ";  save:%d"%(save)+
+                    ";  stateUP:"+self.SENSORS[DEVICEid]["up"]["state"].ljust(13)+
+                    ";  signRecUP:"+unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"])[0]+
+                    ";  lChgUP:%5.1f"%(min(time.time()-self.SENSORS[DEVICEid]["up"]["lastChange"],999))+
+                    ";  stateDN:"+self.SENSORS[DEVICEid]["down"]["state"].ljust(13)+
+                    ";  signRecDN:"+unicode(self.SENSORS[DEVICEid]["down"]["signalReceived"])[0]+
+                    ";  lChgDN:%5.1f"%(min(time.time()-self.SENSORS[DEVICEid]["down"]["lastChange"],999))+
+                    ";  save:%s"%unicode(save)+
                     "",     mType="rcvBC:"+periodCheck)
 
         except  Exception, e:
@@ -1249,78 +1336,124 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
                 indigo.server.log(u"updateDeviceStatus in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
         return 
 
+
     ####-----------------  update EVENTS status  ---------
-    def updateEVENTStatus(self,source=""):
+    def updateEventsStatus(self,source = ""):
         try:
             self.lastEventUpdate  = time.time()
             self.updateEVENTS     = {} #reset any pending update , wil be done after this 
-            save = False
-
             for EVENT in indigo.triggers.iter(self.pluginId):
-                if not EVENT.enabled : continue
-                save = 0
+                self.updateEventStatus(EVENT,source=source)
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"updateEventsStatus in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+
+
+
+    ####-----------------  update EVENT status  ---------
+    def updateEventStatus(self, EVENT, source = "", doTrigger = True, sync = False):
+        try:
+
+                save = ["","","","","",""]
+                if not EVENT.enabled : return 
+                
                 props = EVENT.pluginProps
                 oneAll   = props["oneAll"] 
                 homeAway = props["homeAway"] 
                 noDoors  = props["noDoors"] 
+                resetEVENTwoDoors = False
+                if "resetEVENTwoDoors" in props and props["resetEVENTwoDoors"] == "woDoors":
+                    resetEVENTwoDoors = True
                 triggerType = oneAll+"-"+homeAway+"-"+noDoors
-                if  homeAway =="away":  doorsTimeWindowSymetric = "After"
-                else:                   doorsTimeWindowSymetric = "BeforeOrAfter"
-                if "doorsTimeWindowBeforeOrAfter" in props: doorsTimeWindowBeforeOrAfter = props["doorsTimeWindowBeforeOrAfter"]
-                devicesM        = json.loads(props["devicesMembers"])
+                doorsTimeWindowAfter  = 30
+                doorsTimeWindowBefore = -300
+                if  homeAway =="away":  
+                    doorsTimeWindowAfter  = 300
+                    doorsTimeWindowBefore = 0
+                else:
+                    doorsTimeWindowAfter  = 30
+                    doorsTimeWindowBefore = -300
+                if "doorsTimeWindowAfter"  in props: 
+                    try:    doorsTimeWindowAfter  =  float(props["doorsTimeWindowAfter"])
+                    except: pass
+                if "doorsTimeWindowBefore" in props: 
+                    try:    doorsTimeWindowBefore = -float(props["doorsTimeWindowBefore"])
+                    except: pass
+
+                devicesM        = json.loads(props["sensorsMembers"])
+
                 try:    lastDoorChange = props["lastDoorChange"]
                 except: lastDoorChange = 0
-                dChanged, doorsLastChange, doorsM ,newChanged= self.getLastDoorChange(json.loads(props["doorsMembers"]), lastDoorChange)
+
+                dChanged, doorsLastChange, doorsM = self.getLastDoorChange(json.loads(props["doorsMembers"]), lastDoorChange)
                 if dChanged: 
                     props["doorsMembers"]   = json.dumps(doorsM)
-                    props["lastDoorChange"] = newChanged
-                    save = 1
+                    props["lastDoorChange"] = doorsLastChange
+                    save[0]= "Dc"
                         
-                dTW             = float(props["doorsTimeWindow"])
+                try:    oldsensorsCountTRUE = int(props["sensorsCountTRUE"])
+                except: oldsensorsCountTRUE = 0
 
-                try:    olddevicesCountTRUE = int(props["devicesCountTRUE"])
-                except: olddevicesCountTRUE = 0
+                devLastChanged  = [self.getLastSensorChange(devicesM,"up"),self.getLastSensorChange(devicesM,"down")]
 
-                counter = {"home":0,"away":0}
+
+                if sync:
+                    for DEVICEid in devicesM:
+                        if DEVICEid in self.SENSORS: # safety check
+                            if "lastsyncWithDevices" not in props:
+                                  props["lastsyncWithDevices"] = 0
+                            if time.time() - props["lastsyncWithDevices"] >100:  
+                                devicesM, update = self.syncEventStatesToDeviceStates(DEVICEid,devicesM)
+                                props["lastsyncWithDevices"] = time.time()
+                                save[5]           = "sync"
+                                props["sensorsMembers"] = json.dumps(devicesM)
+
+
+
+
+                ### count # of devices home/ away 
                 for DEVICEid in devicesM:
-                    if DEVICEid in self.DEVICES: # safety check
+                    if DEVICEid in self.SENSORS: # safety check
                         for ud,ha in (("up","home"),("down","away")):
-                            dTT_dLC         = self.DEVICES[DEVICEid]["down"]["lastChange"] - doorsLastChange
-                            if self.DEVICES[DEVICEid][ud]["state"]   == ha and devicesM[DEVICEid] != ha: 
+                                
+                            dTT_dLC         = self.SENSORS[DEVICEid][ud]["lastChange"] - doorsLastChange
+                            #dTT_dLC         = devLastChanged[ud] - doorsLastChange
+                            if self.SENSORS[DEVICEid][ud]["state"]   == ha and devicesM[DEVICEid] != ha: 
                                 if ( 
-                                        (
-                                            noDoors != "doors" or noDoors == "doors" 
-                                        )
-                                        and  
-                                        ( 
-                                            (  doorsTimeWindowBeforeOrAfter =="BeforeOrAfter"   and  abs(dTT_dLC) < dTW                   )  # for home use symetric window
-                                            or      
-                                            (  doorsTimeWindowBeforeOrAfter =="Before"          and  abs(dTT_dLC) < dTW  and dTT_dLC < 0  )  # device event must be fore door, eg coming home device present, then open door
-                                            or     
-                                            (  doorsTimeWindowBeforeOrAfter =="After"           and  abs(dTT_dLC) < dTW  and dTT_dLC > 0  )   # dvice event must be after door event: open door then leave    
-                                        )
-                                    ): # for away use trailing window
+                                            ( noDoors != "doors"     or ( resetEVENTwoDoors and noDoors == "doors")                   ) # either no door or door but un-trigger eg for oneHome, allow to go away w/o door 
+                                        or                              # eg         -30          -5            -5     <    300
+                                            ( noDoors == "doors"  and   doorsTimeWindowBefore < dTT_dLC  and  dTT_dLC < doorsTimeWindowAfter ) # in time window before / after door event ?
+                                    ): 
                                         devicesM[DEVICEid] = ha
-                                        props["devicesMembers"] = json.dumps(devicesM)
-                                        save +=2
-                            if (self.enableEventTracking and save>0 ) or self.ML.decideMyLog(u"EVENTS"): 
+                                        props["sensorsMembers"] = json.dumps(devicesM)
+                                        save[1]= "DW"
+                            if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENTS") and save != ["","","","","",""] ): 
                                 self.ML.myLog( text =""+
                                     "DEVid:%s" %( DEVICEid.replace(":::","/").ljust(18) ) +
                                     ";  noDoors:%s" %(noDoors.ljust(5) ) +
                                     ";  ud:%s" %( ud[0:2] ) +
                                     ";  ha:%s" %( ha[0:2] ) +
                                     ";  devTrgT-tDoor:%7.1f" %(  min(dTT_dLC, 9999)  ) +
-                                    ";  dTW:%7.1f" %(  min(dTW, 9999)  )     +
+                                    ";  dTWB:%7.1f" %(  min(doorsTimeWindowBefore, 9999)  )     +
+                                    ";  dTWA:%7.1f" %(  min(doorsTimeWindowAfter, 9999)  )     +
                                     ";  devM:%s" %(  devicesM[DEVICEid].ljust(5)  )    +
-                                    ";  devUPs:%s" %(self.DEVICES[DEVICEid][ud]["state"])+
+                                    ";  devUPs:%s" %(self.SENSORS[DEVICEid][ud]["state"])+
+                                    ";  save:%s" %unicode(save)+
                                     "",mType= "EV-"+source+":"+EVENT.name )
 
+                counter = {"home":0,"away":0}
+                countr2 = {"home":0,"away":0}
                 for DEVICEid in devicesM:
-                    if DEVICEid in self.DEVICES: # safety check
+                    if DEVICEid in self.SENSORS: # 
                         if devicesM[DEVICEid] == "home":
                             counter["home"] +=1
                         if devicesM[DEVICEid] == "away":
                             counter["away"] +=1
+
+                        if devicesM[DEVICEid] == "shouldBe-home":
+                            countr2["home"] +=1
+                        if devicesM[DEVICEid] == "shouldBe-away":
+                            countr2["away"] +=1
 
                                 
                 if self.eventVariablePrefix !="":
@@ -1336,75 +1469,92 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
 
 
                 ### make  the device summary input
-                if  olddevicesCountTRUE != counter[homeAway]:
+                if  oldsensorsCountTRUE != counter[homeAway]:
                     if (  
                             ( oneAll == "all" and counter[homeAway] == len(devicesM) ) 
                              or 
                             ( oneAll == "one" and counter[homeAway] == 1   and "atleastOne" in props and 
                                 (   
-                                    ( props["atleastOne"].find("2-1") >-1  and olddevicesCountTRUE > 1 )  # from 2-->1
+                                    ( props["atleastOne"].find("2-1") >-1  and oldsensorsCountTRUE > 1 )  # from 2-->1
                                 or
-                                    ( props["atleastOne"].find("0-1") >-1  and olddevicesCountTRUE == 0 ) # from 0-->1
+                                    ( props["atleastOne"].find("0-1") >-1  and oldsensorsCountTRUE == 0 ) # from 0-->1
                                 )
                             )
                         ):  # one : if 0-->1; or 2-->1 ?
-                        props["devicesTrigger"]      = True 
-                        props["devicesTriggerTime"]  = time.time()  # start the timer 
+                        props["sensorsTrigger"]      = True 
+                        props["sensorsTriggerTime"]  = time.time()  # start the timer 
                     else:
-                        props["devicesTrigger"]      = False 
-                    props["devicesCountTRUE"]        = counter[homeAway]
-                    save +=4
+                        props["sensorsTrigger"]      = False 
+                    props["sensorsCountTRUE"]        = counter[homeAway]
+                    save[2] = "T"
       
                 ## ready to trigger?
 
                 testVarCondition  = True
-                varValue          =""
-                if "variableConditionID" in props and props["variableConditionID"] not in ["0",""] and "variableConditionValue" in props:
-                     var = indigo.variables[int(props["variableConditionID"])]
-                     varValue = var.value
-                     if  varValue != props["variableConditionValue"]: testVarCondition  = False
+                varValue          = ""
+                if "variableConditionID" in props and len(props["variableConditionID"]) > 2 and "variableConditionValue" in props:
+                    testVarCondition, varValue = self.compareCurentToProp(testVarCondition, props["variableConditionComp"],  indigo.variables[int(props["variableConditionID"])].value, props["variableConditionValue"])
+                    
+                testDevCondition  = True
+                devValue          = ""
+                if "deviceConditionID"   in props and len(props["deviceConditionID"]) > 2   and "deviceConditionValue"   in props and "deviceConditionSTATE" in props:
+                    try: 
+                        dev = indigo.devices[int(props["deviceConditionID"])]
+                        if  props["deviceConditionSTATE"] in dev.states:
+                            testDevCondition, devValue = self.compareCurentToProp(testDevCondition, props["deviceConditionComp"],  dev.states[props["deviceConditionSTATE"]], props["deviceConditionValue"])
+                    except: pass
 
-                triggered = props["devicesTrigger"]
+                triggered = props["sensorsTrigger"]
                 if triggered:
-                    ## first test if we should ignore , to often? 
-                    if (  time.time() - props["triggerTimeLast"] < float(props["minTimeTriggerBeforeRepeat"])  ):
-                            props["devicesTrigger"]  = False
-                            save +=8
-                    ##  do a delay 
-                    elif  ( time.time() - props["devicesTriggerTime"] < float(props["delayAfterDeviceTrigger"]) ): # requested a delay after trigger to allow a quick reset
+                    
+                    if (  time.time() - props["triggerTimeLast"] < float(props["minTimeTriggerBeforeRepeat"])  ): ## first test if we should ignore , to fast after last trigger  use eg 5 mninutes 
+                            props["sensorsTrigger"]  = False
+                            save[3] = "T-repeat"
+                    elif  ( time.time() - props["sensorsTriggerTime"] < float(props["delayAfterSensorTrigger"]) ): # delay after trigger enable before exeute to allow a quick reset
                             pass
                     else:
-                        if testVarCondition:
+                        if testVarCondition and testDevCondition:
                             props["triggerTimeLast"] = time.time()
-                            self.triggerEvent(EVENT.id,triggerType)
+                            if doTrigger:
+                                self.triggerEvent(EVENT.id,triggerType)
                         else:
-                            if (self.enableEventTracking and save >0 )  or  self.ML.decideMyLog(u"EVENTS"): 
-                                self.ML.myLog( text= "trig  vetoed by variable condition: "+varValue+" NE "+props["variableConditionValue"]+
-                                "",mType= "EV-"+source+":"+EVENT.name )
-                        save +=16
-                        props["devicesTrigger"]  = False
+                            if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENTS") and save != ["","","","","",""] ) : 
+                                if not testVarCondition:
+                                    self.ML.myLog( text= "trig  vetoed by variable condition: "+varValue+" NE "+props["variableConditionValue"]+
+                                    "",mType= "EV-"+source+":"+EVENT.name )
+                                if not testDevCondition:
+                                    self.ML.myLog( text= "trig  vetoed by dev/state condition: "+devValue+" NE "+props["deviceConditionValue"]+
+                                    "",mType= "EV-"+source+":"+EVENT.name )
+                        save[4] = "Trig"
+                        props["sensorsTrigger"]  = False
                         
-                if save: EVENT.replacePluginPropsOnServer(props)
-                if (self.enableEventTracking and save >0 )  or  self.ML.decideMyLog(u"EVENTS") : 
+                if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENTS") and save != ["","","","","",""] ): 
                     self.ML.myLog( text =""+
                     "trigTyp: "              +unicode( triggerType ).ljust(14)+
-                    ";  devTrig: "           +unicode( triggered )[0]+" -> "+unicode( props["devicesTrigger"] )[0]+
+                    ";  devTrig: "           +unicode( triggered )[0]+" -> "+unicode( props["sensorsTrigger"] )[0]+
                     ";  allT:"               +unicode( oneAll == "all" and counter[homeAway] == len(devicesM) )[0]+
-                    ";  1T:"                 +unicode( oneAll == "one" and counter[homeAway] >= 1 and  olddevicesCountTRUE == 0  )[0]+
-                    ";  olddevCtTRUE:"       +unicode( olddevicesCountTRUE ).ljust(2)+
+                    ";  1T:"                 +unicode( oneAll == "one" and counter[homeAway] >= 1 and  oldsensorsCountTRUE == 0  )[0]+
+                    ";  olddevCtTRUE:"       +unicode( oldsensorsCountTRUE ).ljust(2)+
                     ";  countTRUE:"          +unicode(counter).replace(" ","")+
                     ";  Ndevs:%d"            %( len(devicesM) )+
-                    ";  devM:%s"             %(props["devicesMembers"].replace(" ","").replace(":::","/")) +
+                    ";  devM:%s"             %(props["sensorsMembers"].replace(" ","").replace(":::","/")) +
                     ";  dorM:%s"             %(props["doorsMembers"].replace(" ","").replace(":::","/")) +
-                    ";  t-tTrg:%6.1f"        %(  min(time.time() - props["devicesTriggerTime"]   , 9999)  )+
+                    ";  t-tTrg:%6.1f"        %(  min(time.time() - props["sensorsTriggerTime"]   , 9999)  )+
                     ";  t-tDoor:%6.1f"       %(  min(time.time() - doorsLastChange   , 9999)  )+
-                    ";  doorTWdow:%4d"       %( dTW )  +
+                    ";  dTWB:%4d"            %(  min(doorsTimeWindowBefore, 9999)  )     +
+                    ";  dTWA:%4d"            %(  min(doorsTimeWindowAfter, 9999)  )     +
                     ";  varCond:%s"          %unicode(testVarCondition)[0]  +
-                    ";  save:%d"%(save)+
+                    ";  devCond:%s"          %unicode(testDevCondition)[0]  +
+                    ";  save:%s"             %unicode(save)+
                     "",mType= "EV-"+source+":"+EVENT.name )
+
+                if not doTrigger:  
+                    props["sensorsTrigger"]  = False
+
+                if save != ["","","","","",""]: EVENT.replacePluginPropsOnServer(props)
      
         except Exception, e:
-            self.ML.myLog( text = u"updateEVENTStatus error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+            self.ML.myLog( text = u"updateEventStatus error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
         return 
 
     ####-----------------  manage trigger list---------
@@ -1416,32 +1566,18 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
             self.triggerList.remove(trigger.id)
 
 
-    ####-----------------  door gate ---------
-    def getLastDoorChange(self, doorsM,lastDoorChange):
-        doorsLastChange    = 0
-        changed = False
-        for DEVICEid in doorsM:
-            if DEVICEid in self.DOORS: # safety check
-                if self.DOORS[DEVICEid]["lastChange"] > doorsLastChange: 
-                    doorsLastChange = self.DOORS[DEVICEid]["lastChange"]  
-                    doorsM[DEVICEid] = self.DOORS[DEVICEid]["signalReceived"]
-                    
-        if  doorsLastChange != lastDoorChange:
-            changed = True
-        return changed, doorsLastChange, doorsM, doorsLastChange
-
 ######################################################################################
     # Indigo Trigger Firing
 
     ####-----------------  
     def triggerEvent(self, eventId, triggerType):
         try:
-            if (time.time() - self.pluginStartTime) < self.waitAfterStartForFirstTrigger: return 
+            #if (time.time() - self.pluginStartTime) < self.waitAfterStartForFirstTrigger: return 
             for trigId in self.triggerList:
                 trigger = indigo.triggers[trigId]
                 
                 if trigger.pluginTypeId == triggerType and trigId == eventId:
-                    if self.ML.decideMyLog(u"EVENTS"):
+                    if self.ML.decideMyLog(u"EVENTS") or self.enableEventTracking:
                         self.ML.myLog( text =u"trigger/eventId id: "+ str(trigId).rjust(12)+" == "+ str(eventId).rjust(12)+" and trigTypes "+ unicode(triggerType)+" == "+ unicode(trigger.pluginTypeId))
                     indigo.trigger.execute(trigger)
                     break
@@ -1526,7 +1662,7 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     ####-----------------  ---------
     def filterDelayValues(self, filter, valuesDict, typeId="", targetId=""):
         xList =[]
-        if filter in ["all"]: 
+        if filter in ["all","triggerRepeat"]: 
             xList.append(("0"  ,"immediate"))
         if filter  in ["all","short","doorPoll","events"]:
             xList.append(("1"  ,"1 sec"))
@@ -1544,11 +1680,12 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
             xList.append(("20" ,"20 sec"))
             xList.append(("30" ,"30 sec"))
             xList.append(("40" ,"40 sec"))
+        if filter  in ["all","short","long","triggerRepeat"]:
             xList.append(("50" ,"50 sec"))
             xList.append(("60" ,"60 sec"))
             xList.append(("70" ,"70 sec"))
             xList.append(("90" ,"90 sec"))
-        if filter in ["all","long"]:
+        if filter in ["all","long","triggerRepeat"]:
             xList.append(("120" ,"2 minutes"))
             xList.append(("150" ,"2.5 minutes"))
             xList.append(("180" ,"3 minutes"))
@@ -1576,29 +1713,29 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
 
     ####----DEVICES/EVENTS READ / SAVE     ---------
     def readDEVICES(self):
-        self.DEVICES  = {}
+        self.SENSORS  = {}
         try:
-            f=open(self.homeAwayPath+"DEVICES","r")
-            self.DEVICES= json.loads(f.read())
+            f=open(self.homeAwayPath+"SENSORS","r")
+            self.SENSORS= json.loads(f.read())
             f.close()
         except: pass
-        self.saveDEVICES()
+        self.saveSENSORS()
         return 
     ####-----------------    ---------
-    def saveDEVICES(self):
+    def saveSENSORS(self):
         try:
-            for DEVICEid in self.DEVICES:
-                self.DEVICES[DEVICEid]["used"] = False
+            for DEVICEid in self.SENSORS:
+                self.SENSORS[DEVICEid]["used"] = False
                 for EVENT in indigo.triggers.iter(self.pluginId):
                     props = EVENT.pluginProps
-                    if "devicesMembers" not in props: continue
-                    if DEVICEid in json.loads(props["devicesMembers"]):
-                        self.DEVICES[DEVICEid]["used"] = True
+                    if "sensorsMembers" not in props: continue
+                    if DEVICEid in json.loads(props["sensorsMembers"]):
+                        self.SENSORS[DEVICEid]["used"] = True
                         break
             out = "{"
-            for id in self.DEVICES:
-                out+='"'+id+'":'+json.dumps(self.DEVICES[id])+",\n"
-            f=open(self.homeAwayPath+"DEVICES","w")
+            for id in self.SENSORS:
+                out+='"'+id+'":'+json.dumps(self.SENSORS[id])+",\n"
+            f=open(self.homeAwayPath+"SENSORS","w")
             f.write(out.strip(",\n")+"}")
             f.close()
         except  Exception, e:
@@ -1671,6 +1808,30 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
     ####-----------------    ---------
     ####-----------------    --------- END
 
+
+    ####-----------------  
+    def compareCurentToProp(self,testCondition, COMP, value, prop):
+        try:
+            if   COMP == "LT":
+               if  float(value)    >= float(prop):  testCondition  = False
+            elif COMP == "LE":
+               if  float(value)    >  float(prop):  testCondition  = False
+            elif COMP == "EQ":
+               if  unicode(value)  != (prop):       testCondition  = False
+            elif COMP == "NE":
+               if  unicode(value)  == (prop):       testCondition  = False
+            elif COMP == "GE":
+               if  float(value)    <  float(prop):  testCondition  = False
+            elif COMP == "GT":
+               if  float(value)    <= float(prop):  testCondition  = False
+            elif COMP == "in":
+               if  unicode(value)  not in (prop):   testCondition  = False
+            elif COMP == "not in":
+               if  unicode(value)  in (prop):       testCondition  = False
+        except Exception, e:
+            self.ML.myLog( text = u"compareCurentToProp error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+        return testCondition, value
+
     ####-----------------    ---------
     def completePath(self,inPath):
         if len(inPath) == 0: return ""
@@ -1717,4 +1878,123 @@ you can use OneAway/Home or allAway/Home triggers for you or your family iBeacon
         self.ML.myLogSet(debugLevel = self.debugLevel ,logFileActive=self.logFileActive, logFile = self.logFile)
         self.ML.myLog( text = "getDebugSettings: "+unicode(self.debugLevel) )
 
+        
+         ####----------------- add new device to list from bc message  ---------
+    def checkParams(self, msg):
+        try:
+            if "newValue"   not in msg: 
+                if self.ML.decideMyLog(u"RECEIVE"): 
+                    self.ML.myLog( text = "msg no  newValue", mType="receiveDeviceChanged" )
+                return False
+            if "valueForON" not in msg: 
+                if self.ML.decideMyLog(u"RECEIVE"): 
+                    self.ML.myLog( text = "msg no  valueForON", mType="receiveDeviceChanged" )
+                return False
+            if "action"     not in msg: 
+                if self.ML.decideMyLog(u"RECEIVE"): 
+                    self.ML.myLog( text = "msg no  action", mType="receiveDeviceChanged" )
+                return False
+            if "state"     not in msg: 
+                if self.ML.decideMyLog(u"RECEIVE"): 
+                    self.ML.myLog( text = "msg no  state", mType="receiveDeviceChanged" )
+                return False
+            return True
+        except Exception, e:
+            indigo.server.log(u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+        return False
+        
+    ####----------------- add new device to list from bc message  ---------
+    def addNewSensor(self, DEVICEid, msg):
+        try:
+            if self.ML.decideMyLog(u"RECEIVE") and False: 
+                self.ML.myLog( text = "DEVICEid not in SENSORS, skip", mType="receiveDeviceChanged" )
+            if  self.autoAddDevices == "ON":
+                self.SENSORS[DEVICEid] = copy.copy(self.emptyDEVICE)
+                if ("name" not in msg or receivedPluginId =="" ) :
+                    dev = indigo.devices[int(msg["id"])]
+                    msg["name"] = dev.name
+                    receivedPluginId = dev.pluginId
+                
+                self.SENSORS[DEVICEid]["pluginId"]   = receivedPluginId
+                self.SENSORS[DEVICEid]["valueForON"] = msg["valueForON"]
+                self.SENSORS[DEVICEid]["name"]       = msg["name"]
+                self.PLUGINS["used"][receivedPluginId] = True
+                self.saveSENSORS()
+                self.savePLUGINS()
+        except Exception, e:
+            indigo.server.log(u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
+
+
+    ####-----------------  door gate ---------
+    def getLastDoorChange(self, doorsM,lastDoorChange):
+        lastChange    = 0
+        changed = False
+        for DEVICEid in doorsM:
+            if DEVICEid in self.DOORS: # safety check
+                if self.DOORS[DEVICEid]["lastChange"] > lastChange: 
+                    lastChange       = self.DOORS[DEVICEid]["lastChange"]  
+                    doorsM[DEVICEid] = self.DOORS[DEVICEid]["signalReceived"]
+                    
+        if  lastChange != lastDoorChange:
+            changed = True
+        return changed, lastChange, doorsM
+
+
+    ####-----------------   overall last dev change for this event---------
+    def getLastSensorChange(self, deviceM,haType):
+        lastChange    = 0
+        changed = False
+        for DEVICEid in deviceM:
+            if DEVICEid in self.SENSORS: # safety check
+                if self.SENSORS[DEVICEid][haType]["lastChange"] > lastChange: 
+                    lastChange = self.SENSORS[DEVICEid][haType]["lastChange"]  
+                    
+        return lastChange
+
+        
+    ####-----------------  update individual device status  ---------
+    def syncEventStatesToDeviceStates(self, DEVICEid,devicesM):
+        try:
+            update = False
+            dd = DEVICEid.split(":::")
+            if DEVICEid not in self.SENSORS: 
+                if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENT") and update ) : 
+                    dd = DEVICEid.split(":::")
+                    self.ML.myLog( text = (""+
+                        "  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27))+
+                        "  not in DEVICES "+
+                        "",     mType = "syncEventStatesToDeviceStates")
+                return devicesM, update
+            minTime = 10
+            if   self.SENSORS[DEVICEid]["up"]["state"]     == "home":
+                if devicesM[DEVICEid] !="home" and time.time() - self.SENSORS[DEVICEid]["up"]["lastChange"]   > minTime :
+                     devicesM[DEVICEid] ="home"
+                     update = True
+            elif self.SENSORS[DEVICEid]["up"]["state"]     == "":
+                if devicesM[DEVICEid] !="away" and time.time() - self.SENSORS[DEVICEid]["up"]["lastChange"]   > minTime :
+                     devicesM[DEVICEid] ="away"
+                     update = True
+
+            if   self.SENSORS[DEVICEid]["down"]["state"]    == "away":
+                if devicesM[DEVICEid] !="away" and time.time() - self.SENSORS[DEVICEid]["down"]["lastChange"]   > minTime :
+                     devicesM[DEVICEid] ="away"
+                     update = True
+            elif self.SENSORS[DEVICEid]["down"]["state"]    == "":
+                if devicesM[DEVICEid] !="home" and time.time() - self.SENSORS[DEVICEid]["down"]["lastChange"]   > minTime :
+                     devicesM[DEVICEid] ="home"
+                     update = True
+
+            if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENT") and update ) : 
+                dd = DEVICEid.split(":::")
+                self.ML.myLog( text = (""+
+                    "  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27))+
+                    ";  type: %s"  %unicode(evType)+
+                    ";  up-state: %s" %unicode(self.SENSORS[DEVICEid]["up"]["state"])+
+                    ";  do-state: %s" %unicode(self.SENSORS[DEVICEid]["down"]["state"])+
+                    "",     mType = "syncEventStatesToDeviceStates")
+
+        except  Exception, e:
+            if len(unicode(e)) > 5:
+                indigo.server.log(u"updateDeviceStatus in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+        return devicesM, update

@@ -24,9 +24,9 @@
                     <Label>Print   Events</Label> 
                     <Title>CLICK</Title><CallbackMethod>printEVENTS</CallbackMethod>
                 </Field>
-                <Field id="printDEVICES" type="button"> 
-                    <Label>Print   DEVICES</Label> 
-                    <Title>CLICK</Title><CallbackMethod>printDEVICES</CallbackMethod>
+                <Field id="printSENSORS" type="button"> 
+                    <Label>Print   SENSORS</Label> 
+                    <Title>CLICK</Title><CallbackMethod>printSENSORS</CallbackMethod>
                 </Field>
                 <Field id="printDOORS" type="button"> 
                     <Label>Print   DOORS</Label> 
@@ -77,7 +77,7 @@
 
 
     <MenuItem id="defDevices">
-        <Name>Define ON/off Devices to be tracked(iPhone, iBeacons..) </Name>
+        <Name>Define ON/off Sensors to be tracked(iPhone, iBeacons..) </Name>
         <ConfigUI>
             <Field id="DefineDevicesAndNew"  type="checkbox" defaultValue="false" hidden="yes">            </Field>
             <Field id="DefineDevicesAndOld"  type="checkbox" defaultValue="false" hidden="yes">            </Field>
@@ -86,11 +86,11 @@
 
 
             <Field  id="text1-1"    type="textfield"  defaultValue="  and then confirm !"     readonly="yes">
-                <Label>Select ON/off Device to be tracked.................</Label>
+                <Label>Select ON/off Sensors to be tracked.................</Label>
             </Field>
 
             <Field   id="selectedExistingOrNewDevice" type="menu"  >
-                <Label>Select existing or new Device:</Label>
+                <Label>Select existing or new Sensor:</Label>
                 <List class="self" filter="" method="filterExistingDevices" dynamicReload="true"/>
             </Field>
 
@@ -106,7 +106,7 @@
             </Field>
 
             <Field   id="selectedNewDeviceID" type="menu" defaultValue="0" visibleBindingId="DefineDevicesAndNew" visibleBindingValue="true">
-                <Label>Pick new Device:</Label>
+                <Label>Pick new Sensor:</Label>
                 <List class="self" filter="" method="filterNewDevices" dynamicReload="false"/>
             </Field>
 
@@ -118,7 +118,7 @@
             <Field id="infoLabel230" type="label"> <Label></Label>  </Field>
 
             <Field   id="text1-2"    type="textfield" defaultValue="  and then confirm !" readonly="yes" visibleBindingId="selectStatesOK" visibleBindingValue="true" >
-                <Label>Select State of Device to be tracked.....</Label>
+                <Label>Select State of Sensor to be tracked.....</Label>
             </Field>
 
             <Field   id="selectedState" type="menu" visibleBindingId="selectStatesOK" visibleBindingValue="true"   >
@@ -200,7 +200,7 @@
                 <Label>pollingIntervall:</Label>
                 <List class="self" filter="doorPoll" method="filterDelayValues" dynamicReload="true"/>
             </Field>
-            <Field     id="requireStatusChange" type="menu" defaultValue="yes" >
+            <Field     id="requireStatusChange" type="menu" defaultValue="yes" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"  >
                 <Label>When testing if device has changed, require state change also:</Label>
                 <List>
                     <Option value="yes" >YES</Option>
@@ -218,6 +218,32 @@
         </ConfigUI>
     </MenuItem>
     
+    <MenuItem id="syncEvents">
+        <Name>Sync Events/Triggers with device states</Name>
+        <ConfigUI>
+            <Field id="infoLabel0" type="label"> 
+            <Label>This utility is meant to sync data of the events with actual sensor data.
+if eg a sensor comes home and is not ON, the event assumes it is still away
+When device is switched on later while being inside
+it will not trigger  "away" if door device condition is used as it is still "away"
+Same for trigger HOME </Label>  </Field>
+
+            <Field   id="selectedEventToSync" type="menu"  >
+                <Label>select event to sync:</Label>
+                <List class="self" filter="" method="filterExistingEvents" dynamicReload="false"/>
+            </Field>
+                <Field id="buttonsyncEVENT" type="button"> 
+                    <Label>Sync selected Event / Triger</Label> 
+                    <Title>CLICK</Title><CallbackMethod>buttonsyncEVENTCALLBACK</CallbackMethod>
+                </Field>
+            <Field id="infoLabel1" type="label"> <Label></Label>  </Field>
+                <Field id="syncEVENTS" type="button"> 
+                    <Label>Sync ALL Events / Triggers</Label> 
+                    <Title>CLICK</Title><CallbackMethod>syncEVENTSCALLBACK</CallbackMethod>
+                </Field>
+        </ConfigUI>
+    </MenuItem>
+
     
     
 </MenuItems>
