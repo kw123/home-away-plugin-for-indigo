@@ -26,7 +26,7 @@ import myLogPgms.myLogPgms
 
 ## Static parameters, not changed in pgm
 ################################################################################
-# noinspection PyUnresolvedReferences
+# noinspection PyUnresolvedReferences,PyPep8,PyPep8,PyPep8
 class Plugin(indigo.PluginBase):
     ####-----------------             ---------
     def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
@@ -62,7 +62,7 @@ class Plugin(indigo.PluginBase):
     
         self.checkPluginName()
         indigo.server.log("initializing  ... variables, directories, ...")
-        indigo.server.log("startup  my pluginid:  "+ self.pluginId) 
+        indigo.server.log("startup  my pluginid:  " + self.pluginId)
         self.getBasicParams()
         
         return 
@@ -89,7 +89,7 @@ class Plugin(indigo.PluginBase):
         self.MACuserName            = pwd.getpwuid(os.getuid())[0]
         self.MAChome                = os.path.expanduser("~")
         self.indigoDir              = self.MAChome+"/indigo/" #  this is the data directory
-        self.homeAwayPath             = self.indigoDir + "homeAway/"
+        self.homeAwayPath           = self.indigoDir + "homeAway/"
         self.loopSleep              = 1
         self.quitNow                = ""        
         self.pluginState            = "start"
@@ -105,13 +105,13 @@ class Plugin(indigo.PluginBase):
         self.debugLevel             = []
         self.doorLoopWait           = 99
         self.selectDeviceManagement = ""
-        self.qualifiedDevicesUpdated= 0
+        self.qualifiedDevicesUpdated = 0
         self.qualifiedDevices       = {}
         self.qualifiedDoorsUpdated  = 0
         self.qualifiedDoors         = {}
         self.autoAddDevices         = "ON"
         self.eventUpdateWait        = 20
-        self.waitAfterStartForFirstTrigger= 60 # secs
+        self.waitAfterStartForFirstTrigger = 60  # secs
         self.eventVariablePrefix    =  "EVENT"
         self.acceptableStateValues  = ["up","down","expired","on","off","yes","no","true","false","t","f","1","0","ja","nein","an","aus","open","closed","auf","zu"]
         self.emptyDEVICE            = {"up":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"down":{"lastChange":0,"signalReceived":"","state":"","delayTime":0},"valueForON":"","pluginId":"","name":"","used":False}
@@ -262,13 +262,14 @@ class Plugin(indigo.PluginBase):
 
         if filter == "existing":
             for DEVICEid in self.SENSORSMembers:
-                xList.append(( DEVICEid, self.SENSORS[DEVICEid]["name"]+"-"+DEVICEid.split(":::")[1]))
+                dd = self.splitDev(DEVICEid)
+                xList.append(( DEVICEid, self.SENSORS[DEVICEid]["name"]+"-"+dd[1]))
 
         else:
             for DEVICEid in self.SENSORS:
                 if DEVICEid not in self.SENSORSMembers: 
-                    dd = DEVICEid.split(":::")
-                    xList.append(( DEVICEid, self.SENSORS[DEVICEid]["name"]+"-"+DEVICEid.split(":::")[1] ))
+                    dd = self.splitDev(DEVICEid)
+                    xList.append(( DEVICEid, self.SENSORS[DEVICEid]["name"]+"-"+dd[1] ))
 
         if self.ML.decideMyLog(u"SETUP"): 
             self.ML.myLog(text = "xList "+ str(xList), mType="filterSensorsEvent" )
@@ -302,24 +303,24 @@ class Plugin(indigo.PluginBase):
    ####-----------------  --------- DOORS
    ####-----------------  ---------
     def filterDoorsEvent(self, filter, valuesDict, typeId, targetId):
+        xList =[]
         try:
-            xList =[]
-            if self.ML.decideMyLog(u"SETUP"): 
-                self.ML.myLog(text = "typeId: "+ unicode(typeId)+"  targetId:"+ unicode(targetId)+"  valuesDict:"+unicode(valuesDict), mType="filterDoorsEvent")
+            if self.ML.decideMyLog(u"SETUP"):
+                    self.ML.myLog(text = "typeId: "+ unicode(typeId)+"  targetId:"+ unicode(targetId)+"  valuesDict:"+unicode(valuesDict), mType="filterDoorsEvent")
             if len(valuesDict) == 0: 
                 #indigo.server.log("filterDoorsInEvent:  vd empty returning")
                 return xList
-            xList =[]
-                
+
             if filter == "existing":
                 for DEVICEid in self.doorsMembers:
-                    xList.append(( DEVICEid, self.DOORS[DEVICEid]["name"]+"-"+DEVICEid.split(":::")[1]))
+                    dd = self.splitDev(DEVICEid)
+                    xList.append(( DEVICEid, self.DOORS[DEVICEid]["name"]+"-"+dd[1]))
 
             elif  filter == "new":
                 for DEVICEid in self.DOORS:
                     if DEVICEid not in self.doorsMembers: 
                         dd = DEVICEid.split(":::")
-                        xList.append(( DEVICEid, self.DOORS[DEVICEid]["name"]+"-"+DEVICEid.split(":::")[1] ))
+                        xList.append(( DEVICEid, self.DOORS[DEVICEid]["name"]+"-"+dd[1] ))
 
             if self.ML.decideMyLog(u"SETUP"): 
                 self.ML.myLog(text = "filterDoorsEvent    xList "+ str(xList) )
@@ -591,7 +592,8 @@ This option allows to have the sensor reset its state to away (for home events a
         propsToPrint =["up","down","valueForON","used"]
         self.ML.myLog(text =" ==== SENSORs============ ")
         for DEVICEid in self.SENSORS:
-            self.ML.myLog(text ="ID: "+DEVICEid.split(":::")[0].ljust(12)+";  state: "+DEVICEid.split(":::")[1].ljust(15)+" plugin "+unicode(self.SENSORS[DEVICEid]["pluginId"]).ljust(20) +" ==== DEVICE",mType=self.SENSORS[DEVICEid]["name"]+"==")
+            dd = self.splitDev(DEVICEid)
+            self.ML.myLog(text ="ID: "+dd[0].ljust(12)+";  state: "+dd[1].ljust(15)+" plugin "+unicode(self.SENSORS[DEVICEid]["pluginId"]).ljust(20) +" ==== DEVICE",mType=self.SENSORS[DEVICEid]["name"]+"==")
             for prop in propsToPrint:
                     self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(self.SENSORS[DEVICEid][prop]),mType="SENSOR")
         return valuesDict
@@ -602,7 +604,8 @@ This option allows to have the sensor reset its state to away (for home events a
         propsToPrint =["lastM1Change","lastChange","lastChangeDT","signalReceived","state","used","requireStatusChange","pollingIntervall","lastCheck"]
         self.ML.myLog(text =" ==== DOORs ============ ")
         for DEVICEid in self.DOORS:
-            self.ML.myLog(text ="ID: "+DEVICEid.split(":::")[0].ljust(12)+";  state: "+DEVICEid.split(":::")[1].ljust(15)+" ==== DOOR",mType=self.DOORS[DEVICEid]["name"]+"==")
+            dd = self.splitDev(DEVICEid)
+            self.ML.myLog(text ="ID: "+dd[0].ljust(12)+";  state: "+dd[1].ljust(15)+" ==== DOOR",mType=self.DOORS[DEVICEid]["name"]+"==")
             for prop in propsToPrint:
                     self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(self.DOORS[DEVICEid][prop]),mType="DOOR")
         return valuesDict
@@ -628,7 +631,7 @@ This option allows to have the sensor reset its state to away (for home events a
     ####-----------------  ---------
     def syncEVENTSCALLBACK(self,valuesDict,typeId):
         ev = self.enableEventTracking
-        self.enableEventTracking = true
+        self.enableEventTracking = True
         for EVENT in indigo.triggers.iter(self.pluginId):
             self.updateEventStatus(EVENT, source = "sync", doTrigger = False, sync = True)
         self.enableEventTracking = ev 
@@ -652,6 +655,14 @@ This option allows to have the sensor reset its state to away (for home events a
         self.enableEventTracking = ev 
         return valuesDict
 
+    ####-----------------  ---------
+    def printEnabledBCplugins(self,valuesDict,typeId):
+        self.ML.myLog(text ="Home Away plugins ===============", mType="type")
+        for theType in self.PLUGINS:
+            for name in self.PLUGINS[theType]:
+                self.ML.myLog(text =name, mType=theType )
+        return valuesDict
+
 
 
 
@@ -665,8 +676,8 @@ This option allows to have the sensor reset its state to away (for home events a
 
         for DEVICEid in self.SENSORS:
             if len(DEVICEid) < 3: continue
-            exDevState = DEVICEid.split(":::")
-            indigoID = exDevState[0]
+            dd = self.splitDev(DEVICEid)
+            indigoID = dd[0]
             dev = indigo.devices[int(indigoID)]
             xList.append([indigoID, dev.name])
         xList = sorted( xList, key=lambda x:(x[1]) )
@@ -746,9 +757,10 @@ This option allows to have the sensor reset its state to away (for home events a
             if self.SENSORSelected !="0":
                 deldev = {}
                 for DEVICEid in self.SENSORS:
-                    if self.SENSORSelected == DEVICEid.split(":::")[0]:
+                    dd = self.splitDev(DEVICEid)
+                    if self.SENSORSelected == dd[0]:
                         deldev[DEVICEid] = True
-                for DEVICEid in self.SENSORS:
+                for DEVICEid in deldev:
                     del self.SENSORS[DEVICEid]
                 self.saveSENSORS()
                 valuesDict["msg"]                  = "device deleted"
@@ -798,9 +810,9 @@ This option allows to have the sensor reset its state to away (for home events a
 
         for DEVICEid in self.SENSORS:
             if len(DEVICEid) < 3: continue
-            exDevState = DEVICEid.split(":::")
-            if self.SENSORSelected  == exDevState[0]:
-                selectedState = exDevState[1]
+            dd = self.splitDev(DEVICEid)
+            if self.SENSORSelected  == dd[0]:
+                selectedState = dd[1]
                 break
 
         dev = indigo.devices[int(self.SENSORSelected)]
@@ -881,7 +893,8 @@ This option allows to have the sensor reset its state to away (for home events a
                     self.qualifiedDoors[id] = dev.name
                     break
         for DEVICEid in self.DOORS:
-            id = DEVICEid.split(":::")[0]
+            dd = self.splitDev(DEVICEid)
+            id = dd[0]
             if id in self.qualifiedDoors: continue
             try: 
                 dev = indigo.devices[int(id)]
@@ -940,7 +953,8 @@ This option allows to have the sensor reset its state to away (for home events a
             if self.DoorSelected !="0":
                 deldev = {}
                 for DEVICEid in self.DOORS:
-                    if self.DoorSelected == DEVICEid.split(":::")[0]:
+                    dd = self.splitDev(DEVICEid)
+                    if self.DoorSelected == dd[0]:
                         deldev[DEVICEid] = True
                 for DEVICEid in deldev:
                     del self.DOORS[DEVICEid]
@@ -992,9 +1006,9 @@ This option allows to have the sensor reset its state to away (for home events a
 
         for DEVICEid in self.DOORS:
             if len(DEVICEid) < 3: continue
-            exDevState = DEVICEid.split(":::")
-            if self.DoorSelected  == exDevState[0]:
-                selectedState = exDevState[1]
+            dd = self.splitDev(DEVICEid)
+            if self.DoorSelected  == dd[0]:
+                selectedState = dd[1]
                 break
 
         dev = indigo.devices[int(self.DoorSelected)]
@@ -1008,7 +1022,7 @@ This option allows to have the sensor reset its state to away (for home events a
         if len(retList) ==0: 
             retList.append(["0", ">>no state acceptable<<"])
             return retList
-        retList = sorted( retList, key=lambda x:(x[1]) )
+        retList = sorted( retList, key=lambda x: (x[1]) )
         retList.append((0,">>>> select state"))
 
         return retList
@@ -1017,7 +1031,7 @@ This option allows to have the sensor reset its state to away (for home events a
     def buttonConfirmDoorStateCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
         if self.ML.decideMyLog(u"SETUP"): 
-            self.ML.myLog(text = "IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict), mtype="butConfirmDoorState"    )
+            self.ML.myLog(text = "IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict), mType="butConfirmDoorState"    )
         valuesDict["selectDoorsStatesOK"]  = False
         valuesDict["DefineDoorAndNew"]     = False
         valuesDict["DefineDoorAndOld"]     = False
@@ -1119,11 +1133,11 @@ This option allows to have the sensor reset its state to away (for home events a
         
         try:
             for DEVICEid in self.SENSORS:
-                devState = DEVICEid.split(":::")
-                dev = indigo.devices[int(devState[0])]
+                dd = self.splitDev(DEVICEid)
+                dev = indigo.devices[int(dd[0])]
                 lastChangedDT = dev.lastChanged
                 lastChanged = time.mktime(lastChangedDT.timetuple())
-                newST = dev.states[devState[1]]
+                newST = dev.states[dd[1]]
                 UP = (unicode(newST) == self.SENSORS[DEVICEid]["valueForON"])
                 
                 if self.enableEventTracking or self.ML.decideMyLog(u"SETUP"): 
@@ -1160,10 +1174,10 @@ This option allows to have the sensor reset its state to away (for home events a
         
         try:
             for DEVICEid in self.DOORS:
-                devState = DEVICEid.split(":::")
+                dd = self.splitDev(DEVICEid)
                 if  time.time() - self.DOORS[DEVICEid]["lastCheck"]  < self.DOORS[DEVICEid]["pollingIntervall"] : continue
-                dev = indigo.devices[int(devState[0])]
-                newST = dev.states[devState[1]]
+                dev = indigo.devices[int(dd[0])]
+                newST = dev.states[dd[1]]
                 lastChangedDT = dev.lastChanged
                 lastChanged = time.mktime(lastChangedDT.timetuple())
 
@@ -1242,11 +1256,11 @@ This option allows to have the sensor reset its state to away (for home events a
                     DOWNnew = self.SENSORS[DEVICEid]["down"]["signalReceived"]  == UP
                     save = ["","","","","","","","",""]
 
-                    if self.enableEventTracking  or  self.ML.decideMyLog(u"RECEIVE") : 
+                    if self.enableEventTracking  or  self.ML.decideMyLog(u"RECEIVE"):
                             self.ML.myLog( text = "DEVICEid:accepted.. UP " +unicode(UP) +"  UPnew "+unicode(UPnew) +"  DOWNnew "+unicode(DOWNnew), mType="receiveDeviceChanged")
 
                     if UP:
-                        if UPnew : 
+                        if UPnew:
                             if self.SENSORS[DEVICEid]["up"]["state"] != "home": 
                                 self.SENSORS[DEVICEid]["up"]["state"] = "home"
                                 self.SENSORS[DEVICEid]["up"]["lastChange"] = time.time()
@@ -1256,22 +1270,22 @@ This option allows to have the sensor reset its state to away (for home events a
                             if self.SENSORS[DEVICEid]["down"]["state"] != "": 
                                 self.SENSORS[DEVICEid]["down"]["state"] = ""
                                 self.SENSORS[DEVICEid]["down"]["lastChange"] = time.time()
-                                if self.SENSORS[DEVICEid]["up"]["delayTime"] == 0 or self.SENSORS[DEVICEid]["down"]["delayTime"] == 0 : save[2]="NOW"
+                                if self.SENSORS[DEVICEid]["up"]["delayTime"] == 0 or self.SENSORS[DEVICEid]["down"]["delayTime"] == 0: save[2]="NOW"
                     
                     if not UP: 
-                        if  UPnew : 
+                        if  UPnew:
                             if self.SENSORS[DEVICEid]["up"]["state"] == "home": 
                                 save[3]="DU"
                                 self.SENSORS[DEVICEid]["up"]["state"] = "triggeredDOWN"
                                 self.SENSORS[DEVICEid]["up"]["lastChange"] = time.time()
-                                if self.SENSORS[DEVICEid]["up"]["delayTime"] == 0 or self.SENSORS[DEVICEid]["down"]["delayTime"] == 0 : save[2]="NOW"
+                                if self.SENSORS[DEVICEid]["up"]["delayTime"] == 0 or self.SENSORS[DEVICEid]["down"]["delayTime"] == 0: save[2]="NOW"
                     
                         if  DOWNnew: 
                             if self.SENSORS[DEVICEid]["down"]["state"] != "triggeredDOWN": 
                                 save[4]="DD"
                                 self.SENSORS[DEVICEid]["down"]["state"] = "triggeredDOWN"
                                 self.SENSORS[DEVICEid]["down"]["lastChange"] = time.time()
-                                if self.SENSORS[DEVICEid]["up"]["delayTime"] == 0 or self.SENSORS[DEVICEid]["down"]["delayTime"] == 0 : save[2]="NOW"
+                                if self.SENSORS[DEVICEid]["up"]["delayTime"] == 0 or self.SENSORS[DEVICEid]["down"]["delayTime"] == 0: save[2]="NOW"
 
                     if self.SENSORS[DEVICEid]["up"]["signalReceived"]   != UP:  save[5]="US"
                     if self.SENSORS[DEVICEid]["down"]["signalReceived"] == UP:  save[6]="DS"
@@ -1279,15 +1293,15 @@ This option allows to have the sensor reset its state to away (for home events a
                     self.SENSORS[DEVICEid]["down"]["signalReceived"]  = not UP
 
                     if save != ["","","","","","","","",""]: self.saveSENSORS()
-                    if self.enableEventTracking or  (self.ML.decideMyLog(u"RECEIVE") and save != ["","","","","","","","",""] ) : 
-                        dd = DEVICEid.split(":::")
+                    if self.enableEventTracking or  (self.ML.decideMyLog(u"RECEIVE") and save != ["","","","","","","","",""] ):
+                        dd = self.splitDev(DEVICEid)
                         self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
                     "; stateUP:"+self.SENSORS[DEVICEid]["up"]["state"].ljust(13)+
                     "; signRecUP:"+unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"]).ljust(6)+
-                    "; lChgUP:%6.1f"%(min(time.time()-self.SENSORS[DEVICEid]["up"]["lastChange"],9999))+
+                    "; lChgUP:%6.1f"%(min(time.time()-self.SENSORS[DEVICEid]["up"]["lastChange"], 9999))+
                     "; stateDN:"+self.SENSORS[DEVICEid]["down"]["state"].ljust(13)+
                     "; signRecDN:"+unicode(self.SENSORS[DEVICEid]["down"]["signalReceived"]).ljust(6)+
-                    "; lChgDN:%6.1f"%(min(time.time()-self.SENSORS[DEVICEid]["down"]["lastChange"],9999))+
+                    "; lChgDN:%6.1f"%(min(time.time()-self.SENSORS[DEVICEid]["down"]["lastChange"], 9999))+
                     "; save:%s"%unicode(save)+
                     "",     mType="rcvBC:"+msg["name"])
                     self.updateDeviceStatus(DEVICEid,periodCheck="devChg", callEvent=(upd==2)) # set new status now 
@@ -1320,7 +1334,7 @@ This option allows to have the sensor reset its state to away (for home events a
                 self.saveSENSORS()
                 self.updateEventsStatus(source=periodCheck)
             if self.enableEventTracking  or  ( self.ML.decideMyLog(u"RECEIVE") and save != ["","",""]  ): 
-                dd = DEVICEid.split(":::")
+                dd = self.splitDev(DEVICEid)
                 self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
                     ";  stateUP:"+self.SENSORS[DEVICEid]["up"]["state"].ljust(13)+
                     ";  signRecUP:"+unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"])[0]+
@@ -1336,7 +1350,11 @@ This option allows to have the sensor reset its state to away (for home events a
                 indigo.server.log(u"updateDeviceStatus in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
         return 
 
-
+    def splitDev(self,DEVICEid):
+        dd = DEVICEid.split(":::")
+        if len(dd) == 2: return dd
+        if len(dd) == 1: return  dd.append("")
+        return ["",""]
     ####-----------------  update EVENTS status  ---------
     def updateEventsStatus(self,source = ""):
         try:
@@ -1355,7 +1373,7 @@ This option allows to have the sensor reset its state to away (for home events a
         try:
 
                 save = ["","","","","",""]
-                if not EVENT.enabled : return 
+                if not EVENT.enabled: return
                 
                 props = EVENT.pluginProps
                 oneAll   = props["oneAll"] 
@@ -1624,7 +1642,7 @@ This option allows to have the sensor reset its state to away (for home events a
         for id in self.PLUGINS["used"]:
             self.PLUGINS["all"][id] = True
             
-        ret = subprocess.Popen("/bin/ps -ef | grep 'MacOS/IndigoPluginHost' | grep -v grep",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()[0]
+        ret = subprocess.Popen("export LANG=en_US.UTF-8; /bin/ps -ef | grep 'MacOS/IndigoPluginHost' | grep -v grep",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()[0].decode("UTF-8")
         lines = ret.strip("\n").split("\n")
         for line in lines:
             if len(line) < 40: continue
@@ -1636,6 +1654,7 @@ This option allows to have the sensor reset its state to away (for home events a
             pName = items[1].split(".indigoPlugin")[0]
             try:
                 plugId  = plistlib.readPlist(self.indigoPath+"Plugins/"+pName+".indigoPlugin/Contents/Info.plist")["CFBundleIdentifier"]
+                ###self.ML.myLog( text = "reading: "+ self.indigoPath+"Plugins/"+pName+".indigoPlugin/Contents/Info.plist" +"  plid: "+ plugId)
                 accept = True
                 if plugId == self.pluginId:              accept = False
                 elif plugId in self.PLUGINS["acceptable"]:   
@@ -1769,9 +1788,9 @@ This option allows to have the sensor reset its state to away (for home events a
                     if "doorsMembers" not in props: continue
                     if DEVICEid in json.loads(props["doorsMembers"]):
                         self.DOORS[DEVICEid]["used"] = True
-                        break
                         self.doorLoopWait = min(self.doorLoopWait,self.DOORS[DEVICEid]["pollingIntervall"])
-                        
+                        break
+
             out = "{"
             for id in self.DOORS:
                 out+='"'+id+'":'+json.dumps(self.DOORS[id])+",\n"
@@ -1910,21 +1929,24 @@ This option allows to have the sensor reset its state to away (for home events a
                 self.ML.myLog( text = "DEVICEid not in SENSORS, skip", mType="receiveDeviceChanged" )
             if  self.autoAddDevices == "ON":
                 self.SENSORS[DEVICEid] = copy.copy(self.emptyDEVICE)
-                if ("name" not in msg or receivedPluginId =="" ) :
+                if ("name" not in msg) :
                     dev = indigo.devices[int(msg["id"])]
                     msg["name"] = dev.name
+                if ("receivedPluginId" not in msg):
+                    dev = indigo.devices[int(msg["id"])]
                     receivedPluginId = dev.pluginId
-                
-                self.SENSORS[DEVICEid]["pluginId"]   = receivedPluginId
+                    msg["receivedPluginId"] = receivedPluginId
+
+                self.SENSORS[DEVICEid]["pluginId"]   = msg["receivedPluginId"]
                 self.SENSORS[DEVICEid]["valueForON"] = msg["valueForON"]
                 self.SENSORS[DEVICEid]["name"]       = msg["name"]
-                self.PLUGINS["used"][receivedPluginId] = True
+                self.PLUGINS["used"][msg["receivedPluginId"]] = True
                 self.saveSENSORS()
                 self.savePLUGINS()
         except Exception, e:
             indigo.server.log(u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
-
+        return
 
     ####-----------------  door gate ---------
     def getLastDoorChange(self, doorsM,lastDoorChange):
@@ -1955,12 +1977,11 @@ This option allows to have the sensor reset its state to away (for home events a
         
     ####-----------------  update individual device status  ---------
     def syncEventStatesToDeviceStates(self, DEVICEid,devicesM):
+        update = False
         try:
-            update = False
-            dd = DEVICEid.split(":::")
+            dd = self.splitDev(DEVICEid)
             if DEVICEid not in self.SENSORS: 
                 if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENT") and update ) : 
-                    dd = DEVICEid.split(":::")
                     self.ML.myLog( text = (""+
                         "  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27))+
                         "  not in DEVICES "+
@@ -1985,11 +2006,9 @@ This option allows to have the sensor reset its state to away (for home events a
                      devicesM[DEVICEid] ="home"
                      update = True
 
-            if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENT") and update ) : 
-                dd = DEVICEid.split(":::")
+            if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENT") and update ) :
                 self.ML.myLog( text = (""+
                     "  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27))+
-                    ";  type: %s"  %unicode(evType)+
                     ";  up-state: %s" %unicode(self.SENSORS[DEVICEid]["up"]["state"])+
                     ";  do-state: %s" %unicode(self.SENSORS[DEVICEid]["down"]["state"])+
                     "",     mType = "syncEventStatesToDeviceStates")

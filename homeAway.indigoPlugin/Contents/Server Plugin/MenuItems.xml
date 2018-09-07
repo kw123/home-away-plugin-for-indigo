@@ -32,6 +32,10 @@
                     <Label>Print   DOORS</Label> 
                     <Title>CLICK</Title><CallbackMethod>printDOORS</CallbackMethod>
                 </Field>
+                <Field id="printPlugins" type="button"> 
+                    <Label>Print   Plugins</Label> 
+                    <Title>CLICK</Title><CallbackMethod>printEnabledBCplugins</CallbackMethod>
+                </Field>
         </ConfigUI>
     </MenuItem>
 
@@ -56,17 +60,17 @@
                 <CallbackMethod>buttonConfirmExistingOrNewPluginCALLBACK</CallbackMethod>
             </Field>
 
-            <Field   id="idbuttonConfirmDelPlugin" type="button"	visibleBindingId="DefinePluginsAndOld" visibleBindingValue="true">
+            <Field   id="idbuttonConfirmDelPlugin" type="button"	visibleBindingId="DefinePluginsAndOld" visibleBindingValue="true" alwaysUseInDialogHeightCalc ="true">
                 <Label>to DELETE click</Label><Title>CONFIRM</Title>
                 <CallbackMethod>buttonConfirmDeletePluginCALLBACK</CallbackMethod>
             </Field>
 
-            <Field   id="selectedNewPluginID" type="menu" defaultValue="0" visibleBindingId="DefinePluginsAndNew" visibleBindingValue="true">
+            <Field   id="selectedNewPluginID" type="menu" defaultValue="0" visibleBindingId="DefinePluginsAndNew" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>Pick new Plugin:</Label>
                 <List class="self" filter="" method="filterNewPlugins" dynamicReload="false"/>
             </Field>
 
-            <Field   id="idbuttonConfirmNewPlugin" type="button"	visibleBindingId="DefinePluginsAndNew" visibleBindingValue="true">
+            <Field   id="idbuttonConfirmNewPlugin" type="button"	visibleBindingId="DefinePluginsAndNew" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>After selection click</Label><Title>CONFIRM</Title>
                 <CallbackMethod>buttonConfirmPluginNewCALLBACK</CallbackMethod>
             </Field>
@@ -100,24 +104,24 @@
             </Field>
 
 
-            <Field   id="idbuttonConfirmDelDevice" type="button"	visibleBindingId="DefineDevicesAndOld" visibleBindingValue="true">
+            <Field   id="idbuttonConfirmDelDevice" type="button"	visibleBindingId="DefineDevicesAndOld" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>to DELETE click</Label><Title>CONFIRM</Title>
                 <CallbackMethod>buttonConfirmDeleteDeviceCALLBACK</CallbackMethod>
             </Field>
 
-            <Field   id="selectedNewDeviceID" type="menu" defaultValue="0" visibleBindingId="DefineDevicesAndNew" visibleBindingValue="true">
+            <Field   id="selectedNewDeviceID" type="menu" defaultValue="0" visibleBindingId="DefineDevicesAndNew" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>Pick new Sensor:</Label>
                 <List class="self" filter="" method="filterNewDevices" dynamicReload="false"/>
             </Field>
 
-            <Field   id="idbuttonConfirmNewDevice" type="button"	visibleBindingId="DefineDevicesAndNew" visibleBindingValue="true">
+            <Field   id="idbuttonConfirmNewDevice" type="button"	visibleBindingId="DefineDevicesAndNew" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>After selection click</Label><Title>CONFIRM</Title>
                 <CallbackMethod>buttonConfirmDeviceNewCALLBACK</CallbackMethod>
             </Field>
 
             <Field id="infoLabel230" type="label"> <Label></Label>  </Field>
 
-            <Field   id="text1-2"    type="textfield" defaultValue="  and then confirm !" readonly="yes" visibleBindingId="selectStatesOK" visibleBindingValue="true" >
+            <Field   id="text1-2"    type="textfield" defaultValue="  and then confirm !" readonly="yes" visibleBindingId="selectStatesOK" visibleBindingValue="true"   alwaysUseInDialogHeightCalc ="true">
                 <Label>Select State of Sensor to be tracked.....</Label>
             </Field>
 
@@ -125,17 +129,17 @@
                 <Label>Select State:</Label>
                 <List class="self" filter="" method="filterStates" dynamicReload="true"/>
             </Field>
-            <Field    id="homeDelay" type="menu" tooltip=""  defaultValue="60"  visibleBindingId="selectStatesOK" visibleBindingValue="true" >
+            <Field    id="homeDelay" type="menu" tooltip=""  defaultValue="60"  visibleBindingId="selectStatesOK" visibleBindingValue="true"   alwaysUseInDialogHeightCalc ="true">
                 <Label>Home to x:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
-            <Field    id="awayDelay" type="menu" tooltip="" defaultValue="60"  visibleBindingId="selectStatesOK" visibleBindingValue="true" >
+            <Field    id="awayDelay" type="menu" tooltip="" defaultValue="60"  visibleBindingId="selectStatesOK" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true" >
                 <Label>x to Away:</Label>
                 <List class="self" filter="all" method="filterDelayValues"  dynamicReload="false"/>
             </Field>
 
 
-            <Field   id="idbuttonConfirmState" type="button" visibleBindingId="selectStatesOK" visibleBindingValue="true" >
+            <Field   id="idbuttonConfirmState" type="button" visibleBindingId="selectStatesOK" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>click</Label><Title>CONFIRM</Title>
                 <CallbackMethod>buttonConfirmStateCALLBACK</CallbackMethod>
             </Field>
@@ -170,37 +174,37 @@
             </Field>
 
 
-            <Field   id="idbuttonConfirmDelDoor" type="button"	visibleBindingId="DefineDoorsAndOld" visibleBindingValue="true">
+            <Field   id="idbuttonConfirmDelDoor" type="button"	visibleBindingId="DefineDoorsAndOld" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>to DELETE click</Label><Title>CONFIRM</Title>
                 <CallbackMethod>buttonConfirmDeleteDoorCALLBACK</CallbackMethod>
             </Field>
 
-            <Field   id="selectedNewDoorID" type="menu" defaultValue="0" visibleBindingId="DefineDoorsAndNew" visibleBindingValue="true">
+            <Field   id="selectedNewDoorID" type="menu" defaultValue="0" visibleBindingId="DefineDoorsAndNew" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>Pick new Door Device:</Label>
                 <List class="self" filter="" method="filterNewDoors" dynamicReload="false"/>
             </Field>
 
-            <Field   id="idbuttonConfirmNewDoor" type="button"	visibleBindingId="DefineDoorsAndNew" visibleBindingValue="true">
+            <Field   id="idbuttonConfirmNewDoor" type="button"	visibleBindingId="DefineDoorsAndNew" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>After selection click</Label><Title>CONFIRM</Title>
                 <CallbackMethod>buttonConfirmDoorNewCALLBACK</CallbackMethod>
             </Field>
 
             <Field id="infoLabel330" type="label"> <Label></Label>  </Field>
 
-            <Field   id="text3-2"    type="textfield" defaultValue="  and then confirm !" readonly="yes" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true" >
+            <Field   id="text3-2"    type="textfield" defaultValue="  and then confirm !" readonly="yes" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   alwaysUseInDialogHeightCalc ="true">
                 <Label>2. Select State of Door Device to be tracked.</Label>
             </Field>
 
-            <Field   id="selectedDoorState" type="menu" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   >
+            <Field   id="selectedDoorState" type="menu" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   alwaysUseInDialogHeightCalc ="true" >
                 <Label>Select Door Device State:</Label>
                 <List class="self" filter="" method="filterDoorStates" dynamicReload="true"/>
             </Field>
 
-            <Field   id="pollingIntervall" type="menu" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   >
+            <Field   id="pollingIntervall" type="menu" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   alwaysUseInDialogHeightCalc ="true" >
                 <Label>pollingIntervall:</Label>
                 <List class="self" filter="doorPoll" method="filterDelayValues" dynamicReload="true"/>
             </Field>
-            <Field     id="requireStatusChange" type="menu" defaultValue="yes" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"  >
+            <Field     id="requireStatusChange" type="menu" defaultValue="yes" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"   alwaysUseInDialogHeightCalc ="true">
                 <Label>When testing if device has changed, require state change also:</Label>
                 <List>
                     <Option value="yes" >YES</Option>
@@ -209,7 +213,7 @@
             </Field>
 
 
-            <Field   id="idbuttonConfirmDoorState" type="button" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true" >
+            <Field   id="idbuttonConfirmDoorState" type="button" visibleBindingId="selectDoorsStatesOK" visibleBindingValue="true"  alwaysUseInDialogHeightCalc ="true">
                 <Label>click</Label><Title>CONFIRM</Title>
                 <CallbackMethod>buttonConfirmDoorStateCALLBACK</CallbackMethod>
             </Field>
