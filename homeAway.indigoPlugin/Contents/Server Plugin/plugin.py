@@ -22,9 +22,9 @@ import threading
 import copy
 import json
 import myLogPgms.myLogPgms 
- 
 
-## Static parameters, not changed in pgm
+
+## Static parameters, not changed in pgm ##
 ################################################################################
 # noinspection PyUnresolvedReferences,PyPep8,PyPep8,PyPep8
 class Plugin(indigo.PluginBase):
