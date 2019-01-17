@@ -22,7 +22,7 @@ import threading
 import copy
 import json
 import myLogPgms.myLogPgms 
-
+ 
 
 ## Static parameters, not changed in pgm
 ################################################################################
