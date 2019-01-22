@@ -1,7 +1,7 @@
-Added features / changes in v7.2.10 @ 2019-01-21:  
+Added features / changes in v7.2.13 @ 2019-01-21:  
 ===================================================
 
-1. added check for inclomplete event definitions
+1. added check for incomplete event definitions
 
 2. change to std logging
 
