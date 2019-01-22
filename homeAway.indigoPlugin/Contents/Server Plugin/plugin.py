@@ -21,10 +21,10 @@ import plistlib
 import threading
 import copy
 import json
-import myLogPgms.myLogPgms 
 
+import logging
 
-## Static parameters, not changed in pgm ##
+## Static parameters, not changed in pgm
 ################################################################################
 # noinspection PyUnresolvedReferences,PyPep8,PyPep8,PyPep8
 class Plugin(indigo.PluginBase):
@@ -35,20 +35,31 @@ class Plugin(indigo.PluginBase):
 		#pfmt = logging.Formatter('%(asctime)s.%(msecs)03d\t%(levelname)-12s\t%(name)s.%(funcName)-25s %(msg)s', datefmt='%Y-%m-%d %H:%M:%S')
 		#self.plugin_file_handler.setFormatter(pfmt)
 
-		self.pathToPlugin = self.completePath(os.getcwd())
-		## = /Library/Application Support/Perceptive Automation/Indigo 6/Plugins/piBeacon.indigoPlugin/Contents/Server Plugin
-		p = max(0, self.pathToPlugin.lower().find("/plugins/")) + 1
-		self.indigoPath = self.pathToPlugin[:p]
-		#self.errorLog(self.indigoPath)
-		#self.errorLog(self.pathToPlugin)
-		#self.errorLog(self.pathToPlugin)
-		major, minor, release = map(int, indigo.server.version.split("."))
-		self.indigoVersion = major
-		indigo.server.log(u"setting parameters for indigo version: >>"+unicode(self.indigoVersion)+u"<<")   
-		self.pluginState                = "init"
-		self.pluginVersion      = pluginVersion
-		self.pluginId           = pluginId
-		self.pluginName         = pluginId.split(".")[-1]
+
+		self.getInstallFolderPath			= indigo.server.getInstallFolderPath()+"/"
+		self.indigoPath						= indigo.server.getInstallFolderPath()+"/"
+		self.indigoRootPath 				= indigo.server.getInstallFolderPath().split("Indigo")[0]
+		self.pathToPlugin 					= self.completePath(os.getcwd())
+
+		self.indigoPath						= indigo.server.getInstallFolderPath()+"/"
+		major, minor, release 				= map(int, indigo.server.version.split("."))
+		self.indigoVersion					= major
+		self.pluginVersion					= pluginVersion
+		self.pluginId						= pluginId
+		self.pluginName						= pluginId.split(".")[-1]
+		self.myPID							= os.getpid()
+		self.pluginState					= "init"
+		self.pluginShortName 				= "homeAway"
+
+		self.myPID 							= os.getpid()
+		self.MACuserName					= pwd.getpwuid(os.getuid())[0]
+
+		self.MAChome						= os.path.expanduser(u"~")
+		self.userIndigoDir					= self.MAChome + "/indigo/"
+		self.indigoPreferencesPluginDir 	= self.getInstallFolderPath+"Preferences/Plugins/"+self.pluginId+"/"
+		self.indigoPluginDirOld				= self.userIndigoDir + self.pluginShortName+"/"
+		self.PluginLogFile					= self.indigoPath.split("Plugins/")[0]+"Logs/"+self.pluginId+"/plugin.log"
+
 
 	####-----------------             ---------
 	def __del__(self):
@@ -62,10 +73,42 @@ class Plugin(indigo.PluginBase):
 	def startup(self):
 	
 		self.checkPluginName()
-		indigo.server.log("initializing  ... variables, directories, ...")
-		indigo.server.log("startup  my pluginid:  " + self.pluginId)
+
+
+		indigo.server.log("initializing	 ... ")
+
+		indigo.server.log(u"path To files:      =================")
+		indigo.server.log(u"indigo              "+self.indigoRootPath)
+		indigo.server.log(u"installFolder       "+self.indigoPath)
+		indigo.server.log(u"plugin.py           "+self.pathToPlugin)
+		indigo.server.log(u"Plugin params       "+self.indigoPreferencesPluginDir)
+		indigo.server.log(u"PluginLogFile       "+self.PluginLogFile )
+		indigo.server.log(u"Plugin short Name   "+self.pluginShortName)
+		indigo.server.log(u"my PID              "+str(self.myPID))	 
+
+
+		formats=	{   logging.THREADDEBUG: "%(asctime)s %(msg)s",
+						logging.DEBUG:       "%(asctime)s %(msg)s",
+						logging.INFO:        "%(msg)s",
+						logging.WARNING:     "%(asctime)s %(msg)s",
+						logging.ERROR:       "%(asctime)s.%(msecs)03d\t%(levelname)-12s\t%(name)s.%(funcName)-25s %(msg)s",
+						logging.CRITICAL:    "%(asctime)s.%(msecs)03d\t%(levelname)-12s\t%(name)s.%(funcName)-25s %(msg)s" }
+
+		date_Format = { logging.THREADDEBUG: "%d %H:%M:%S",
+						logging.DEBUG:       "%d %H:%M:%S",
+						logging.INFO:        "%H:%M:%S",
+						logging.WARNING:     "%H:%M:%S",
+						logging.ERROR:       "%Y-%m-%d %H:%M:%S",
+						logging.CRITICAL:    "%Y-%m-%d %H:%M:%S" }
+		formatter = LevelFormatter(fmt="%(msg)s", datefmt="%Y-%m-%d %H:%M:%S", level_fmts=formats, level_date=date_Format)
+	
+		if not self.moveToIndigoPrefsDir(self.indigoPluginDirOld, self.indigoPreferencesPluginDir):
+				exit()
+
 		self.getBasicParams()
-		
+
+
+	
 		return 
 
    ####----check THIS pluging name etc     ---------
@@ -87,10 +130,6 @@ class Plugin(indigo.PluginBase):
 	####----basic params    ---------
 	def getBasicParams(self):
 		self.myPID = os.getpid()
-		self.MACuserName            = pwd.getpwuid(os.getuid())[0]
-		self.MAChome                = os.path.expanduser("~")
-		self.indigoDir              = self.MAChome+"/indigo/" #  this is the data directory
-		self.homeAwayPath           = self.indigoDir + "homeAway/"
 		self.loopSleep              = 1
 		self.quitNow                = ""        
 		self.pluginState            = "start"
@@ -133,9 +172,7 @@ class Plugin(indigo.PluginBase):
 			self.PLUGINS["acceptable"][item] = True
 			self.PLUGINS["all"][item] = True
 
-		self.makeDirectories()
 
-		self.ML = myLogPgms.myLogPgms.MLX()
 		self.getDebugSettings(init=True)
 
 		self.readDEVICES()
@@ -272,8 +309,8 @@ class Plugin(indigo.PluginBase):
 					dd = self.splitDev(DEVICEid)
 					xList.append(( DEVICEid, self.SENSORS[DEVICEid]["name"]+"-"+dd[1] ))
 
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "xList "+ str(xList), mType="filterSensorsEvent" )
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "xList "+ str(xList), mType="filterSensorsEvent" )
 		return xList
 
 
@@ -286,7 +323,7 @@ class Plugin(indigo.PluginBase):
 					del self.SENSORSMembers[valuesDict["selectExistingSensor"]]
 					self.SENSORSMembers, valuesDict["sensorsMembers"] = self.fixDICTEmpty(self.SENSORSMembers)
 		except Exception, e:
-			self.ML.myLog( text =u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40,u"Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return valuesDict
 
 	####-----------------  ---------
@@ -306,8 +343,8 @@ class Plugin(indigo.PluginBase):
 	def filterDoorsEvent(self, filter, valuesDict, typeId, targetId):
 		xList =[]
 		try:
-			if self.ML.decideMyLog(u"SETUP"):
-					self.ML.myLog(text = "typeId: "+ unicode(typeId)+"  targetId:"+ unicode(targetId)+"  valuesDict:"+unicode(valuesDict), mType="filterDoorsEvent")
+			if self.decideMyLog(u"SETUP"):
+					self.myLog(text = "typeId: "+ unicode(typeId)+"  targetId:"+ unicode(targetId)+"  valuesDict:"+unicode(valuesDict), mType="filterDoorsEvent")
 			if len(valuesDict) == 0: 
 				#indigo.server.log("filterDoorsInEvent:  vd empty returning")
 				return xList
@@ -323,11 +360,11 @@ class Plugin(indigo.PluginBase):
 						dd = DEVICEid.split(":::")
 						xList.append(( DEVICEid, self.DOORS[DEVICEid]["name"]+"-"+dd[1] ))
 
-			if self.ML.decideMyLog(u"SETUP"): 
-				self.ML.myLog(text = "filterDoorsEvent    xList "+ str(xList) )
+			if self.decideMyLog(u"SETUP"): 
+				self.myLog(text = "filterDoorsEvent    xList "+ str(xList) )
 		except Exception, e:
-			self.ML.myLog( text =u"filterDoorsEvent error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
-			self.ML.myLog( text =u"filterDoorsEvent doorsMembers: "+unicode(self.doorsMembers) )
+			self.indiLOG.log(40,u"Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40,u"doorsMembers: "+unicode(self.doorsMembers) )
 		return xList
 
 	####-----------------  ---------
@@ -338,7 +375,7 @@ class Plugin(indigo.PluginBase):
 				del self.doorsMembers[valuesDict["selectExistingDoor"]]
 				self.doorsMembers, valuesDict["doorsMembers"] = self.fixDICTEmpty(self.doorsMembers)
 		except Exception, e:
-			self.ML.myLog( text =u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40,u"Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return valuesDict
 
 	####-----------------  ---------
@@ -357,8 +394,8 @@ class Plugin(indigo.PluginBase):
 		else:
 			valuesDict["msg"]                       = "error"
 
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = unicode(valuesDict), mType="butConfirmDoorsSettings")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = unicode(valuesDict), mType="butConfirmDoorsSettings")
 
 		return valuesDict
 
@@ -409,8 +446,8 @@ class Plugin(indigo.PluginBase):
 	def buttonConfirmExistingOrNewPluginCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
 		self.PluginSelected = valuesDict["selectedExistingOrNewPlugin"]
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "IndigoID "+ self.PluginSelected +"  "+unicode(valuesDict), mType="butConfirmExistingOrNewPlugin")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "IndigoID "+ self.PluginSelected +"  "+unicode(valuesDict), mType="butConfirmExistingOrNewPlugin")
 		valuesDict["text0-1"]              = "  and then confirm !"
 
 		try:
@@ -422,15 +459,15 @@ class Plugin(indigo.PluginBase):
 				valuesDict["DefinePluginsAndNew"]  = False
 
 		except  Exception, e:
-			self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 		
 	####-----------------  ---------
 	def buttonConfirmDeletePluginCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "pluginid  "+ str(self.PluginSelected) +"  "+unicode(valuesDict), mType="butConfirmDeletePlugin")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "pluginid  "+ str(self.PluginSelected) +"  "+unicode(valuesDict), mType="butConfirmDeletePlugin")
 		valuesDict["DefinePluginsAndNew"]  = False
 		valuesDict["DefinePluginsAndOld"]  = False
 
@@ -445,15 +482,15 @@ class Plugin(indigo.PluginBase):
 				self.savePLUGINS()
 			
 		except  Exception, e:
-				self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+				self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 
 	####-----------------  ---------
 	def buttonConfirmPluginNewCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
-		if self.ML.decideMyLog(u"SETUP"): 
-		   self.ML.myLog(text = "IndigoID "+ self.PluginSelected +"  "+unicode(valuesDict), mType="butConfirmExistingPlugin")
+		if self.decideMyLog(u"SETUP"): 
+		   self.myLog(text = "IndigoID "+ self.PluginSelected +"  "+unicode(valuesDict), mType="butConfirmExistingPlugin")
 		self.PluginSelected = valuesDict["selectedNewPluginID"]
 		try:
 			if self.PluginSelected !="0":
@@ -472,7 +509,7 @@ class Plugin(indigo.PluginBase):
 			
 
 		except  Exception, e:
-			self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 
@@ -545,8 +582,8 @@ This option allows to have the sensor reset its state to away (for home events a
 
 	####-----------------  ---------
 	def printEVENTS(self,valuesDict,typeId):
-		self.ML.myLog(text ="")
-		self.ML.myLog(text =" ==== EVENTs ============ ")
+		self.myLog(text ="")
+		self.myLog(text =" ==== EVENTs ============ ")
 		for item in indigo.triggers.iter(self.pluginId):
 			valuesDict = self.printEVENT(valuesDict,typeId,item)
 		return valuesDict
@@ -554,18 +591,18 @@ This option allows to have the sensor reset its state to away (for home events a
 	####-----------------  ---------
 	def printEVENT(self,valuesDict,typeId,item):
 		props = item.pluginProps
-		self.ML.myLog(text ="===== EVENT id: "+ unicode(item.id).ljust(12)+ ";  Type: "+item.pluginTypeId +" ==== EVENT",mType=item.name+"==")
+		self.myLog(text ="===== EVENT id: "+ unicode(item.id).ljust(12)+ ";  Type: "+item.pluginTypeId +" ==== EVENT",mType=item.name+"==")
 		for prop in self.evPropsToPrint:
 			if prop not in props: continue
 			if prop == "variableConditionID" and len(props[prop]) > 2: 
 				var = indigo.variables[int(props[prop])]
 				out = "CONDITION Variable" .ljust(30)  + ": "+ var.name
-				self.ML.myLog(text = out,mType="EVENTS")
+				self.myLog(text = out,mType="EVENTS")
 				out = "    value to compare" .ljust(30)+ ": \""+ props["variableConditionValue"]+"\"  "+ props["variableConditionComp"]+"  \""+var.value+"\" (currentValue)"
 			elif prop == "deviceConditionID" and len(props[prop]) > 2: 
 				dev = indigo.devices[int(props[prop])]
 				out = "CONDITION Device" .ljust(30)  + ": "+ dev.name+";    state: "+ unicode(props["deviceConditionSTATE"])
-				self.ML.myLog(text = out,mType="EVENTS")
+				self.myLog(text = out,mType="EVENTS")
 				out  = "    value to compare" .ljust(30)+ ": \""+ props["deviceConditionValue"]
 				out += "\"  "+ props["deviceConditionComp"]
 				if "deviceConditionSTATE" in props and props["deviceConditionSTATE"] in dev.states:
@@ -584,43 +621,43 @@ This option allows to have the sensor reset its state to away (for home events a
 				if props[prop].find("0-1") >-1: out+= " from 0 to 1 device;"
 			else:
 				out = prop.ljust(30)+ ": "+ unicode(props[prop])
-			self.ML.myLog(text = out,mType="EVENTS")
+			self.myLog(text = out,mType="EVENTS")
 		return valuesDict
 
 
 	####-----------------  ---------
 	def printSENSORS(self,valuesDict,typeId):
 		propsToPrint =["up","down","valueForON","used"]
-		self.ML.myLog(text =" ==== SENSORs============ ")
+		self.myLog(text =" ==== SENSORs============ ")
 		for DEVICEid in self.SENSORS:
 			dd = self.splitDev(DEVICEid)
-			self.ML.myLog(text ="ID: "+dd[0].ljust(12)+";  state: "+dd[1].ljust(15)+" plugin "+unicode(self.SENSORS[DEVICEid]["pluginId"]).ljust(20) +" ==== DEVICE",mType=self.SENSORS[DEVICEid]["name"]+"==")
+			self.myLog(text ="ID: "+dd[0].ljust(12)+";  state: "+dd[1].ljust(15)+" plugin "+unicode(self.SENSORS[DEVICEid]["pluginId"]).ljust(20) +" ==== DEVICE",mType=self.SENSORS[DEVICEid]["name"]+"==")
 			for prop in propsToPrint:
-					self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(self.SENSORS[DEVICEid][prop]),mType="SENSOR")
+					self.myLog(text = prop.ljust(30)+ ": "+ unicode(self.SENSORS[DEVICEid][prop]),mType="SENSOR")
 		return valuesDict
 
 
 	####-----------------  ---------
 	def printDOORS(self,valuesDict,typeId):
 		propsToPrint =["lastM1Change","lastChange","lastChangeDT","signalReceived","state","used","requireStatusChange","pollingIntervall","lastCheck"]
-		self.ML.myLog(text =" ==== DOORs ============ ")
+		self.myLog(text =" ==== DOORs ============ ")
 		for DEVICEid in self.DOORS:
 			dd = self.splitDev(DEVICEid)
-			self.ML.myLog(text ="ID: "+dd[0].ljust(12)+";  state: "+dd[1].ljust(15)+" ==== DOOR",mType=self.DOORS[DEVICEid]["name"]+"==")
+			self.myLog(text ="ID: "+dd[0].ljust(12)+";  state: "+dd[1].ljust(15)+" ==== DOOR",mType=self.DOORS[DEVICEid]["name"]+"==")
 			for prop in propsToPrint:
-					self.ML.myLog(text = prop.ljust(30)+ ": "+ unicode(self.DOORS[DEVICEid][prop]),mType="DOOR")
+					self.myLog(text = prop.ljust(30)+ ": "+ unicode(self.DOORS[DEVICEid][prop]),mType="DOOR")
 		return valuesDict
 
 	####-----------------  ---------
 	def startEventTracking(self):
-		self.ML.myLog(text =" enabled EventTracking")
+		self.myLog(text =" enabled EventTracking")
 		self.enableEventTracking = True
 		return 
 
 
 	####-----------------  ---------
 	def stopEventTracking(self):
-		self.ML.myLog(text =" disabled EventTracking ")
+		self.myLog(text =" disabled EventTracking ")
 		self.enableEventTracking = False
 		return 
 
@@ -658,10 +695,10 @@ This option allows to have the sensor reset its state to away (for home events a
 
 	####-----------------  ---------
 	def printEnabledBCplugins(self,valuesDict,typeId):
-		self.ML.myLog(text ="Home Away plugins ===============", mType="type")
+		self.myLog(text ="Home Away plugins ===============", mType="type")
 		for theType in self.PLUGINS:
 			for name in self.PLUGINS[theType]:
-				self.ML.myLog(text =name, mType=theType )
+				self.myLog(text =name, mType=theType )
 		return valuesDict
 
 
@@ -723,8 +760,8 @@ This option allows to have the sensor reset its state to away (for home events a
 	def buttonConfirmExistingOrNewDeviceCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
 		self.SENSORSelected = valuesDict["selectedExistingOrNewDevice"]
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "IndigoID "+ self.SENSORSelected +"  "+unicode(valuesDict), mType="butConfirmExistingOrNewDevice")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "IndigoID "+ self.SENSORSelected +"  "+unicode(valuesDict), mType="butConfirmExistingOrNewDevice")
 		valuesDict["selectStatesOK"]       = False
 		valuesDict["text1-1"]              = "  and then confirm !"
 		valuesDict["text1-2"]              = "  and then confirm !"
@@ -741,15 +778,15 @@ This option allows to have the sensor reset its state to away (for home events a
 				valuesDict["msg"]                  = "device selected, enter state or delete"
 
 		except  Exception, e:
-			self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 		
 	####-----------------  ---------
 	def buttonConfirmDeleteDeviceCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "IndigoID "+ str(self.SENSORSelected) +"  "+unicode(valuesDict), mType="butConfirmDeleteDevice")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "IndigoID "+ str(self.SENSORSelected) +"  "+unicode(valuesDict), mType="butConfirmDeleteDevice")
 		valuesDict["DefineDevicesAndNew"]  = False
 		valuesDict["DefineDevicesAndOld"]  = False
 		valuesDict["selectStatesOK"]       = False
@@ -767,15 +804,15 @@ This option allows to have the sensor reset its state to away (for home events a
 				valuesDict["msg"]                  = "device deleted"
 			
 		except  Exception, e:
-				self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+				self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 
 	####-----------------  ---------
 	def buttonConfirmDeviceNewCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "IndigoID "+ self.SENSORSelected +"  "+unicode(valuesDict), mType="butConfirmExistingDevice")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "IndigoID "+ self.SENSORSelected +"  "+unicode(valuesDict), mType="butConfirmExistingDevice")
 		self.SENSORSelected = valuesDict["selectedNewDeviceID"]
 		valuesDict["selectStatesOK"]       = False
 		valuesDict["DefineDevicesAndNew"]  = False
@@ -796,7 +833,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			
 
 		except  Exception, e:
-			self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 
@@ -835,8 +872,8 @@ This option allows to have the sensor reset its state to away (for home events a
 	####-----------------  ---------
 	def buttonConfirmStateCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "IndigoID "+ str(self.SENSORSelected) +"  "+unicode(valuesDict), mType="butConfirmState")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "IndigoID "+ str(self.SENSORSelected) +"  "+unicode(valuesDict), mType="butConfirmState")
 		valuesDict["selectStatesOK"]       = False
 		valuesDict["DefineDevicesAndNew"]  = False
 		valuesDict["DefineDevicesAndOld"]  = False
@@ -860,7 +897,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			self.saveSENSORS()
 			
 		except  Exception, e:
-			self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 
@@ -919,8 +956,8 @@ This option allows to have the sensor reset its state to away (for home events a
 	def buttonConfirmExistingOrNewDoorCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
 		self.DoorSelected = valuesDict["selectedExistingOrNewDoor"]
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "IndigoID "+ self.DoorSelected +"  "+unicode(valuesDict), mType ="butConfirmExistingOrNewDoor")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "IndigoID "+ self.DoorSelected +"  "+unicode(valuesDict), mType ="butConfirmExistingOrNewDoor")
 		valuesDict["selectStatesOK"]       = False
 		valuesDict["text1-1"]              = "  and then confirm !"
 		valuesDict["text1-2"]              = "  and then confirm !"
@@ -937,15 +974,15 @@ This option allows to have the sensor reset its state to away (for home events a
 				valuesDict["msg"]                  = "device selected, enter state or delete"
 
 		except  Exception, e:
-			self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 		
 	####-----------------  ---------
 	def buttonConfirmDeleteDoorCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict), mType ="butConfirmDeleteDoor")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict), mType ="butConfirmDeleteDoor")
 		valuesDict["DefineDoorsAndNew"]   = False
 		valuesDict["DefineDoorsAndOld"]   = False
 		valuesDict["selectDoorsStatesOK"] = False
@@ -963,15 +1000,15 @@ This option allows to have the sensor reset its state to away (for home events a
 				valuesDict["msg"]                  = "device deleted"
 			
 		except  Exception, e:
-				self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+				self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 
 	####-----------------  ---------
 	def buttonConfirmDoorNewCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "IndigoID "+ self.DoorSelected +"  "+unicode(valuesDict), mType ="butConfirmExistingDoor")
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "IndigoID "+ self.DoorSelected +"  "+unicode(valuesDict), mType ="butConfirmExistingDoor")
 		self.DoorSelected = valuesDict["selectedNewDoorID"]
 		valuesDict["selectDoorsStatesOK"] = False
 		valuesDict["DefineDoorsAndNew"]   = False
@@ -992,7 +1029,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			
 
 		except  Exception, e:
-			self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 
@@ -1031,8 +1068,8 @@ This option allows to have the sensor reset its state to away (for home events a
 	####-----------------  ---------
 	def buttonConfirmDoorStateCALLBACK(self, valuesDict=None, typeId="", targetId=0):
  
-		if self.ML.decideMyLog(u"SETUP"): 
-			self.ML.myLog(text = "IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict), mType="butConfirmDoorState"    )
+		if self.decideMyLog(u"SETUP"): 
+			self.myLog(text = "IndigoID "+ str(self.DoorSelected) +"  "+unicode(valuesDict), mType="butConfirmDoorState"    )
 		valuesDict["selectDoorsStatesOK"]  = False
 		valuesDict["DefineDoorAndNew"]     = False
 		valuesDict["DefineDoorAndOld"]     = False
@@ -1053,7 +1090,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			self.saveDOORS()
 			
 		except  Exception, e:
-			self.ML.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.myLog(text = "Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return valuesDict
 
@@ -1109,7 +1146,7 @@ This option allows to have the sensor reset its state to away (for home events a
 
 		except  Exception, e:
 				if len(unicode(e)) > 5:
-					indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+					indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		################   ------- here the loop  ends    --------------
 
 		self.pluginState   = "stop"
@@ -1141,8 +1178,8 @@ This option allows to have the sensor reset its state to away (for home events a
 				newST = dev.states[dd[1]]
 				UP = (unicode(newST) == self.SENSORS[DEVICEid]["valueForON"])
 				
-				if self.enableEventTracking or self.ML.decideMyLog(u"SETUP"): 
-					self.ML.myLog(text = "getDEVICEstates    DEVICEid "+DEVICEid.ljust(20)+"  lastDT:"+unicode(lastChangedDT) +"   "+
+				if self.enableEventTracking or self.decideMyLog(u"SETUP"): 
+					self.myLog(text = "getDEVICEstates    DEVICEid "+DEVICEid.ljust(20)+"  lastDT:"+unicode(lastChangedDT) +"   "+
 					unicode(int(lastChanged)) +" == last  "+unicode(int(self.SENSORS[DEVICEid]["up"]["lastChange"]))+"  "+
 					" delta  "+unicode(int(lastChanged - self.SENSORS[DEVICEid]["up"]["lastChange"])).rjust(10)+"  "+
 					"; ex-Tf: "+ unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"]) +
@@ -1161,7 +1198,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			if update: self.saveSENSORS()
 		except  Exception, e:
 				if len(unicode(e)) > 5:
-					indigo.server.log(u"getDEVICEstates in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e)+"\n" +unicode(self.SENSORS) )
+					indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e)+"\n" +unicode(self.SENSORS) )
 		return 
 
 
@@ -1192,8 +1229,8 @@ This option allows to have the sensor reset its state to away (for home events a
 																				  
 						)
 					):
-					if self.enableEventTracking or self.ML.decideMyLog(u"DOORS") : 
-						self.ML.myLog(text = "getDOORstates    DEVICEid: "+DEVICEid.ljust(20)+ str(lastChangedDT) +" == lastDT  "+unicode(self.DOORS[DEVICEid]["lastChangeDT"])+"  "+
+					if self.enableEventTracking or self.decideMyLog(u"DOORS") : 
+						self.myLog(text = "getDOORstates    DEVICEid: "+DEVICEid.ljust(20)+ str(lastChangedDT) +" == lastDT  "+unicode(self.DOORS[DEVICEid]["lastChangeDT"])+"  "+
 						unicode(int(lastChanged)) +" == last  "+unicode(int(self.DOORS[DEVICEid]["lastChange"]))+"  "+
 						"; delta: "+unicode(int(lastChanged - self.DOORS[DEVICEid]["lastChange"])).rjust(10)+
 						";  st curr "+ unicode(self.DOORS[DEVICEid]["signalReceived"]) +" == new: "+unicode(newST) +
@@ -1208,7 +1245,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			if update: self.saveDOORS()
 		except  Exception, e:
 				if len(unicode(e)) > 5:
-					indigo.server.log(u"getDOORstates in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+					indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return 
 
 
@@ -1225,11 +1262,11 @@ This option allows to have the sensor reset its state to away (for home events a
 	def receiveDeviceChanged(self, MSG):
 
 		try:
-			if self.ML.decideMyLog(u"RECEIVE") and False: 
-				self.ML.myLog( text = unicode(MSG), mType="receiveDeviceChanged" )
+			if self.decideMyLog(u"RECEIVE") and False: 
+				self.indiLOG.log(40, unicode(MSG), mType="receiveDeviceChanged" )
 			if "data" not in MSG: 
-				if self.ML.decideMyLog(u"RECEIVE") : 
-					self.ML.myLog( text = "bad data received, not data element in dict "+ unicode(MSG), mType="receiveDeviceChanged" )
+				if self.decideMyLog(u"RECEIVE") : 
+					self.indiLOG.log(40, "bad data received, not data element in dict "+ unicode(MSG), mType="receiveDeviceChanged" )
 				return
 				
 			data = MSG["data"]
@@ -1248,8 +1285,8 @@ This option allows to have the sensor reset its state to away (for home events a
 					if DEVICEid not in self.SENSORS: # check if device was ignored, add to the devices dict
 						self.addNewSensor(DEVICEid, msg)
 						continue
-					if self.ML.decideMyLog(u"RECEIVE"): 
-						self.ML.myLog( text = "msg:"+ str(msg) , mType="receiveDeviceChanged")
+					if self.decideMyLog(u"RECEIVE"): 
+						self.indiLOG.log(40, "msg:"+ str(msg) , mType="receiveDeviceChanged")
 					
 					self.SENSORS[DEVICEid]["valueForON"] = msg["valueForON"]
 					UP      = msg["newValue"] == msg["valueForON"]
@@ -1257,8 +1294,8 @@ This option allows to have the sensor reset its state to away (for home events a
 					DOWNnew = self.SENSORS[DEVICEid]["down"]["signalReceived"]  == UP
 					save = ["","","","","","","","",""]
 
-					if self.enableEventTracking  or  self.ML.decideMyLog(u"RECEIVE"):
-							self.ML.myLog( text = "DEVICEid:accepted.. UP " +unicode(UP) +"  UPnew "+unicode(UPnew) +"  DOWNnew "+unicode(DOWNnew), mType="receiveDeviceChanged")
+					if self.enableEventTracking  or  self.decideMyLog(u"RECEIVE"):
+							self.indiLOG.log(40, "DEVICEid:accepted.. UP " +unicode(UP) +"  UPnew "+unicode(UPnew) +"  DOWNnew "+unicode(DOWNnew), mType="receiveDeviceChanged")
 
 					if UP:
 						if UPnew:
@@ -1294,9 +1331,9 @@ This option allows to have the sensor reset its state to away (for home events a
 					self.SENSORS[DEVICEid]["down"]["signalReceived"]  = not UP
 
 					if save != ["","","","","","","","",""]: self.saveSENSORS()
-					if self.enableEventTracking or  (self.ML.decideMyLog(u"RECEIVE") and save != ["","","","","","","","",""] ):
+					if self.enableEventTracking or  (self.decideMyLog(u"RECEIVE") and save != ["","","","","","","","",""] ):
 						dd = self.splitDev(DEVICEid)
-						self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
+						self.indiLOG.log(40, (dd[0]+":"+dd[1]).ljust(17)+
 					"; stateUP:"+self.SENSORS[DEVICEid]["up"]["state"].ljust(13)+
 					"; signRecUP:"+unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"]).ljust(6)+
 					"; lChgUP:%6.1f"%(min(time.time()-self.SENSORS[DEVICEid]["up"]["lastChange"], 9999))+
@@ -1307,7 +1344,7 @@ This option allows to have the sensor reset its state to away (for home events a
 					"",     mType="rcvBC:"+msg["name"])
 					self.updateDeviceStatus(DEVICEid,periodCheck="devChg", callEvent=(upd==2)) # set new status now 
 		except Exception, e:
-			indigo.server.log(u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40," Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		
 	####-----------------  update device status  ---------
 	def periodCheckDEVICES(self):
@@ -1334,9 +1371,9 @@ This option allows to have the sensor reset its state to away (for home events a
 			if save != ["","","","","","","","",""] or callEvent: 
 				self.saveSENSORS()
 				self.updateEventsStatus(source=periodCheck)
-			if self.enableEventTracking  or  ( self.ML.decideMyLog(u"RECEIVE") and save != ["","",""]  ): 
+			if self.enableEventTracking  or  ( self.decideMyLog(u"RECEIVE") and save != ["","",""]  ): 
 				dd = self.splitDev(DEVICEid)
-				self.ML.myLog( text = (dd[0]+":"+dd[1]).ljust(17)+
+				self.indiLOG.log(40, (dd[0]+":"+dd[1]).ljust(17)+
 					";  stateUP:"+self.SENSORS[DEVICEid]["up"]["state"].ljust(13)+
 					";  signRecUP:"+unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"])[0]+
 					";  lChgUP:%5.1f"%(min(time.time()-self.SENSORS[DEVICEid]["up"]["lastChange"],999))+
@@ -1348,7 +1385,7 @@ This option allows to have the sensor reset its state to away (for home events a
 
 		except  Exception, e:
 			if len(unicode(e)) > 5:
-				indigo.server.log(u"updateDeviceStatus in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+				indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return 
 
 	def splitDev(self,DEVICEid):
@@ -1446,8 +1483,8 @@ This option allows to have the sensor reset its state to away (for home events a
 										devicesM[DEVICEid] = ha
 										props["sensorsMembers"] = json.dumps(devicesM)
 										save[1]= "DW"
-							if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENTS") and save != ["","","","","",""] ): 
-								self.ML.myLog( text =""+
+							if self.enableEventTracking  or  ( self.decideMyLog(u"EVENTS") and save != ["","","","","",""] ): 
+								self.indiLOG.log(40,""+
 									"DEVid:%s" %( DEVICEid.replace(":::","/").ljust(18) ) +
 									";  noDoors:%s" %(noDoors.ljust(5) ) +
 									";  ud:%s" %( ud[0:2] ) +
@@ -1537,18 +1574,18 @@ This option allows to have the sensor reset its state to away (for home events a
 							if doTrigger:
 								self.triggerEvent(EVENT.id,triggerType)
 						else:
-							if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENTS") and save != ["","","","","",""] ) : 
+							if self.enableEventTracking  or  ( self.decideMyLog(u"EVENTS") and save != ["","","","","",""] ) : 
 								if not testVarCondition:
-									self.ML.myLog( text= "trig  vetoed by variable condition: "+varValue+" NE "+props["variableConditionValue"]+
+									self.myLog( text= "trig  vetoed by variable condition: "+varValue+" NE "+props["variableConditionValue"]+
 									"",mType= "EV-"+source+":"+EVENT.name )
 								if not testDevCondition:
-									self.ML.myLog( text= "trig  vetoed by dev/state condition: "+devValue+" NE "+props["deviceConditionValue"]+
+									self.myLog( text= "trig  vetoed by dev/state condition: "+devValue+" NE "+props["deviceConditionValue"]+
 									"",mType= "EV-"+source+":"+EVENT.name )
 						save[4] = "Trig"
 						props["sensorsTrigger"]  = False
 						
-				if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENTS") and save != ["","","","","",""] ): 
-					self.ML.myLog( text =""+
+				if self.enableEventTracking  or  ( self.decideMyLog(u"EVENTS") and save != ["","","","","",""] ): 
+					self.indiLOG.log(40,""+
 					"trigTyp: "              +unicode( triggerType ).ljust(14)+
 					";  devTrig: "           +unicode( triggered )[0]+" -> "+unicode( props["sensorsTrigger"] )[0]+
 					";  allT:"               +unicode( oneAll == "all" and counter[homeAway] == len(devicesM) )[0]+
@@ -1573,7 +1610,7 @@ This option allows to have the sensor reset its state to away (for home events a
 				if save != ["","","","","",""]: EVENT.replacePluginPropsOnServer(props)
 	 
 		except Exception, e:
-			self.ML.myLog( text = u"updateEventStatus error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40, u"Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return 
 
 	####-----------------  manage trigger list---------
@@ -1596,12 +1633,12 @@ This option allows to have the sensor reset its state to away (for home events a
 				trigger = indigo.triggers[trigId]
 				
 				if trigger.pluginTypeId == triggerType and trigId == eventId:
-					if self.ML.decideMyLog(u"EVENTS") or self.enableEventTracking:
-						self.ML.myLog( text =u"trigger/eventId id: "+ str(trigId).rjust(12)+" == "+ str(eventId).rjust(12)+" and trigTypes "+ unicode(triggerType)+" == "+ unicode(trigger.pluginTypeId))
+					if self.decideMyLog(u"EVENTS") or self.enableEventTracking:
+						self.indiLOG.log(40,u"trigger/eventId id: "+ str(trigId).rjust(12)+" == "+ str(eventId).rjust(12)+" and trigTypes "+ unicode(triggerType)+" == "+ unicode(trigger.pluginTypeId))
 					indigo.trigger.execute(trigger)
 					break
 		except Exception, e:
-			self.ML.myLog( text = u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40, u"Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return
 
 
@@ -1634,8 +1671,8 @@ This option allows to have the sensor reset its state to away (for home events a
 			if len(pl) < 5: continue
 			self.pluginSubscribedTo [pl] = True
 			indigo.server.subscribeToBroadcast(pl, u"deviceStatusChanged", u"receiveDeviceChangedSubscription")
-			if self.ML.decideMyLog(u"SETUP"): 
-				self.ML.myLog( text = "subscribeToPlugins: "+pl  )
+			if self.decideMyLog(u"SETUP"): 
+				self.indiLOG.log(40, "subscribeToPlugins: "+pl  )
 		return 
 
 	####-----------------  ---------
@@ -1655,7 +1692,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			pName = items[1].split(".indigoPlugin")[0]
 			try:
 				plugId  = plistlib.readPlist(self.indigoPath+"Plugins/"+pName+".indigoPlugin/Contents/Info.plist")["CFBundleIdentifier"]
-				###self.ML.myLog( text = "reading: "+ self.indigoPath+"Plugins/"+pName+".indigoPlugin/Contents/Info.plist" +"  plid: "+ plugId)
+				###self.indiLOG.log(40, "reading: "+ self.indigoPath+"Plugins/"+pName+".indigoPlugin/Contents/Info.plist" +"  plid: "+ plugId)
 				accept = True
 				if plugId == self.pluginId:              accept = False
 				elif plugId in self.PLUGINS["acceptable"]:   
@@ -1668,7 +1705,7 @@ This option allows to have the sensor reset its state to away (for home events a
 				  
 				if accept: self.PLUGINS["used"][plugId] = True
 			except  Exception, e:
-					self.ML.myLog( text =" getActivePlugins   error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+					self.indiLOG.log(40," getActivePlugins   Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 					version = " "
 		self.savePLUGINS()
 		return 
@@ -1723,11 +1760,11 @@ This option allows to have the sensor reset its state to away (for home events a
 		if not os.path.exists(self.indigoDir):
 			os.mkdir(self.indigoDir)
 
-		if not os.path.exists(self.homeAwayPath):
-			os.mkdir(self.homeAwayPath)
+		if not os.path.exists(self.indigoPreferencesPluginDir):
+			os.mkdir(self.indigoPreferencesPluginDir)
 
-			if not os.path.exists(self.homeAwayPath):
-				self.errorLog("error creating the plugin data dir did not work, can not create: "+ self.homeAwayPath)
+			if not os.path.exists(self.indigoPreferencesPluginDir):
+				self.errorLog("error creating the plugin data dir did not work, can not create: "+ self.indigoPreferencesPluginDir)
 				self.sleep(1000)
 				exit()
 
@@ -1735,7 +1772,7 @@ This option allows to have the sensor reset its state to away (for home events a
 	def readDEVICES(self):
 		self.SENSORS  = {}
 		try:
-			f=open(self.homeAwayPath+"SENSORS","r")
+			f=open(self.indigoPreferencesPluginDir+"SENSORS","r")
 			self.SENSORS= json.loads(f.read())
 			f.close()
 		except: pass
@@ -1763,11 +1800,11 @@ This option allows to have the sensor reset its state to away (for home events a
 				out = "{"
 				for id in self.SENSORS:
 					out+='"'+id+'":'+json.dumps(self.SENSORS[id])+",\n"
-				f=open(self.homeAwayPath+"SENSORS","w")
+				f=open(self.indigoPreferencesPluginDir+"SENSORS","w")
 				f.write(out.strip(",\n")+"}")
 				f.close()
 		except  Exception, e:
-					self.ML.myLog( text =" saveDOORS   error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+					self.indiLOG.log(40,"Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return 
 	####-----------------    ---------
 	def fixEVprops(self):
@@ -1777,7 +1814,7 @@ This option allows to have the sensor reset its state to away (for home events a
 	def readDOORS(self):
 		self.DOORS  = {}
 		try:
-			f=open(self.homeAwayPath+"DOORS","r")
+			f=open(self.indigoPreferencesPluginDir+"DOORS","r")
 			self.DOORS= json.loads(f.read())
 			f.close()
 		except: pass
@@ -1803,16 +1840,16 @@ This option allows to have the sensor reset its state to away (for home events a
 			out = "{"
 			for id in self.DOORS:
 				out+='"'+id+'":'+json.dumps(self.DOORS[id])+",\n"
-			f=open(self.homeAwayPath+"DOORS","w")
+			f=open(self.indigoPreferencesPluginDir+"DOORS","w")
 			f.write(out.strip(",\n")+"}")
 			f.close()
 		except  Exception, e:
-					self.ML.myLog( text =" saveDOORS   error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+					self.indiLOG.log(40," Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return 
 	####-----------------    ---------
 	def readPLUGINS(self):
 		try:
-			f=open(self.homeAwayPath+"PLUGINS","r")
+			f=open(self.indigoPreferencesPluginDir+"PLUGINS","r")
 			self.PLUGINS = json.loads(f.read())
 			f.close()
 			self.savePLUGINS()
@@ -1827,11 +1864,11 @@ This option allows to have the sensor reset its state to away (for home events a
 				self.PLUGINS["all"][item] = True
 			for item in self.PLUGINS["used"]:
 				self.PLUGINS["all"][item] = True
-			f=open(self.homeAwayPath+"PLUGINS","w")
+			f=open(self.indigoPreferencesPluginDir+"PLUGINS","w")
 			f.write(json.dumps(self.PLUGINS, sort_keys=True, indent=2))
 			f.close()
 		except  Exception, e:
-					self.ML.myLog( text =" savePLUGINS   error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+					self.indiLOG.log(40,"Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return 
 	####-----------------    ---------
 	####-----------------    --------- END
@@ -1857,15 +1894,10 @@ This option allows to have the sensor reset its state to away (for home events a
 			elif COMP == "not in":
 			   if  unicode(value)  in (prop):       testCondition  = False
 		except Exception, e:
-			self.ML.myLog( text = u"compareCurentToProp error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40, u"Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return testCondition, value
 
-	####-----------------    ---------
-	def completePath(self,inPath):
-		if len(inPath) == 0: return ""
-		if inPath == " ":    return ""
-		if inPath[-1] !="/": inPath +="/"
-		return inPath
+
 	####----debug levels    ---------
 	def getDebugSettings(self, init=False, theDict={}):
 		self.debugLevel         = []
@@ -1876,7 +1908,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			if self.pluginPrefs.get(u"debugEVENTS", False):          self.debugLevel.append("EVENTS")
 			if self.pluginPrefs.get(u"debugall", False):             self.debugLevel.append("all")
   
-			newLogFile               = self.pluginPrefs.get("logFilePath", "no")
+			self.setLogfile(self.pluginPrefs.get("logFileActive2", "standard"))
 			self.autoAddDevices      = self.pluginPrefs.get(u"autoAddDevices","ON")
 			self.eventUpdateWait     = float(self.pluginPrefs.get(u"eventUpdateWait",10))
 			self.eventVariablePrefix = self.pluginPrefs.get(u"eventVariablePrefix","EVENT")
@@ -1887,55 +1919,42 @@ This option allows to have the sensor reset its state to away (for home events a
 			if theDict[u"debugRECEIVE"]:         self.debugLevel.append("RECEIVE")
 			if theDict[u"debugEVENTS"]:          self.debugLevel.append("EVENTS")
 			if theDict[u"debugall"]:             self.debugLevel.append("all")
-			newLogFile =                theDict["logFilePath"]
 			self.autoAddDevices =       theDict["autoAddDevices"]
 			self.eventUpdateWait =      float(theDict["eventUpdateWait"])
 			self.eventVariablePrefix =  theDict["eventVariablePrefix"]
+			self.setLogfile(theDict[u"logFileActive2"])
 
-		if newLogFile != self.logFileActive:
-			if newLogFile =="no":
-				self.logFile =""
-				indigo.server.log("logfile handling: regular indigo logfile")
-			elif newLogFile =="indigo":
-				self.logFile = self.indigoPath.split("Plugins/")[0]+"logs/"+self.pluginId+"/homeAway.log"
-				indigo.server.log("logfile output to : "+self.logFile)
-			else:
-				self.logFile    = self.homeAwayPath + "homeAway.log"
-				indigo.server.log("logfile output to : "+self.logFile)
-		self.logFileActive = newLogFile
-		self.ML.myLogSet(debugLevel = self.debugLevel ,logFileActive=self.logFileActive, logFile = self.logFile)
-		self.ML.myLog( text = "getDebugSettings: "+unicode(self.debugLevel) )
 
 		
 		 ####----------------- add new device to list from bc message  ---------
 	def checkParams(self, msg):
 		try:
 			if "newValue"   not in msg: 
-				if self.ML.decideMyLog(u"RECEIVE"): 
-					self.ML.myLog( text = "msg no  newValue", mType="receiveDeviceChanged" )
+				if self.decideMyLog(u"RECEIVE"): 
+					self.indiLOG.log(40, "msg no  newValue", mType="receiveDeviceChanged" )
 				return False
 			if "valueForON" not in msg: 
-				if self.ML.decideMyLog(u"RECEIVE"): 
-					self.ML.myLog( text = "msg no  valueForON", mType="receiveDeviceChanged" )
+				if self.decideMyLog(u"RECEIVE"): 
+					self.indiLOG.log(40, "msg no  valueForON", mType="receiveDeviceChanged" )
 				return False
 			if "action"     not in msg: 
-				if self.ML.decideMyLog(u"RECEIVE"): 
-					self.ML.myLog( text = "msg no  action", mType="receiveDeviceChanged" )
+				if self.decideMyLog(u"RECEIVE"): 
+					self.indiLOG.log(40, "msg no  action", mType="receiveDeviceChanged" )
 				return False
 			if "state"     not in msg: 
-				if self.ML.decideMyLog(u"RECEIVE"): 
-					self.ML.myLog( text = "msg no  state", mType="receiveDeviceChanged" )
+				if self.decideMyLog(u"RECEIVE"): 
+					self.indiLOG.log(40, "msg no  state", mType="receiveDeviceChanged" )
 				return False
 			return True
 		except Exception, e:
-			indigo.server.log(u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40," Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return False
 		
 	####----------------- add new device to list from bc message  ---------
 	def addNewSensor(self, DEVICEid, msg):
 		try:
-			if self.ML.decideMyLog(u"RECEIVE") and False: 
-				self.ML.myLog( text = "DEVICEid not in SENSORS, skip", mType="receiveDeviceChanged" )
+			if self.decideMyLog(u"RECEIVE") and False: 
+				self.indiLOG.log(40, "DEVICEid not in SENSORS, skip", mType="receiveDeviceChanged" )
 			if  self.autoAddDevices == "ON":
 				self.SENSORS[DEVICEid] = copy.copy(self.emptyDEVICE)
 				if ("name" not in msg) :
@@ -1953,7 +1972,7 @@ This option allows to have the sensor reset its state to away (for home events a
 				self.saveSENSORS()
 				self.savePLUGINS()
 		except Exception, e:
-			indigo.server.log(u"error in  Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
+			self.indiLOG.log(40," Line '%s' ;  error='%s'" % (sys.exc_traceback.tb_lineno, e))
 
 		return
 
@@ -1990,8 +2009,8 @@ This option allows to have the sensor reset its state to away (for home events a
 		try:
 			dd = self.splitDev(DEVICEid)
 			if DEVICEid not in self.SENSORS: 
-				if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENT") and update ) : 
-					self.ML.myLog( text = (""+
+				if self.enableEventTracking  or  ( self.decideMyLog(u"EVENT") and update ) : 
+					self.indiLOG.log(40, (""+
 						"  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27))+
 						"  not in DEVICES "+
 						"",     mType = "syncEventStatesToDeviceStates")
@@ -2015,8 +2034,8 @@ This option allows to have the sensor reset its state to away (for home events a
 					 devicesM[DEVICEid] ="home"
 					 update = True
 
-			if self.enableEventTracking  or  ( self.ML.decideMyLog(u"EVENT") and update ) :
-				self.ML.myLog( text = (""+
+			if self.enableEventTracking  or  ( self.decideMyLog(u"EVENT") and update ) :
+				self.indiLOG.log(40, (""+
 					"  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27))+
 					";  up-state: %s" %unicode(self.SENSORS[DEVICEid]["up"]["state"])+
 					";  do-state: %s" %unicode(self.SENSORS[DEVICEid]["down"]["state"])+
@@ -2024,5 +2043,190 @@ This option allows to have the sensor reset its state to away (for home events a
 
 		except  Exception, e:
 			if len(unicode(e)) > 5:
-				indigo.server.log(u"updateDeviceStatus in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+				indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
 		return devicesM, update
+
+
+
+	####-----------------	 ---------
+	def completePath(self,inPath):
+		if len(inPath) == 0: return ""
+		if inPath == " ":	 return ""
+		if inPath[-1] !="/": inPath +="/"
+		return inPath
+
+########################################
+########################################
+####----checkPluginPath----
+########################################
+########################################
+	####------ --------
+	def checkPluginPath(self, pluginName, pathToPlugin):
+
+		if pathToPlugin.find("/" + self.pluginName + ".indigoPlugin/") == -1:
+			self.indiLOG.critical(u"--------------------------------------------------------------------------------------------------------------")
+			self.indiLOG.critical(u"The pluginName is not correct, please reinstall or rename")
+			self.indiLOG.critical(u"It should be   /Libray/....../Plugins/" + pluginName + ".indigoPlugin")
+			p = max(0, pathToPlugin.find("/Contents/Server"))
+			self.indiLOG.critical(u"It is: " + pathToPlugin[:p])
+			self.indiLOG.critical(u"please check your download folder, delete old *.indigoPlugin files or this will happen again during next update")
+			self.indiLOG.critical(u"---------------------------------------------------------------------------------------------------------------")
+			self.sleep(100)
+			return False
+		return True
+
+########################################
+########################################
+####----move files to ...indigo x.y/Preferences/Plugins/< pluginID >.----
+########################################
+########################################
+	####------ --------
+	def moveToIndigoPrefsDir(self, fromPath, toPath):
+		if os.path.isdir(toPath): 		
+			return True
+		indigo.server.log(u"--------------------------------------------------------------------------------------------------------------")
+		indigo.server.log("creating plugin prefs directory ")
+		os.mkdir(toPath)
+		if not os.path.isdir(toPath): 	
+			self.indiLOG.critical("| preference directory can not be created. stopping plugin:  "+ toPath)
+			self.indiLOG.critical(u"--------------------------------------------------------------------------------------------------------------")
+			self.sleep(100)
+			return False
+		indigo.server.log("| preference directory created;  all config.. files will be here: "+ toPath)
+			
+		if not os.path.isdir(fromPath): 
+			indigo.server.log(u"--------------------------------------------------------------------------------------------------------------")
+			return True
+		cmd = "cp -R '"+ fromPath+"'  '"+ toPath+"'"
+		os.system(cmd )
+		self.sleep(1)
+		indigo.server.log("| plugin files moved:  "+ cmd)
+		indigo.server.log("| please delete old files")
+		indigo.server.log(u"--------------------------------------------------------------------------------------------------------------")
+		return True
+
+########################################
+########################################
+####-----------------  logging ---------
+########################################
+########################################
+
+	####----------------- ---------
+	def setLogfile(self, lgFile):
+		self.logFileActive =lgFile
+		if   self.logFileActive =="standard":	self.logFile = ""
+		elif self.logFileActive =="indigo":		self.logFile = self.indigoPath.split("Plugins/")[0]+"Logs/"+self.pluginId+"/plugin.log"
+		else:									self.logFile = self.indigoPreferencesPluginDir +"plugin.log"
+		self.myLog( text="myLogSet setting parameters -- logFileActive= "+ unicode(self.logFileActive) + "; logFile= "+ unicode(self.logFile)+ ";  debugLevel= "+ unicode(self.debugLevel) , destination="standard")
+
+
+			
+	####-----------------	 ---------
+	def decideMyLog(self, msgLevel):
+		try:
+			if msgLevel	 == u"all" or u"all" in self.debugLevel:	 return True
+			if msgLevel	 == ""	 and u"all" not in self.debugLevel:	 return False
+			if msgLevel in self.debugLevel:							 return True
+			return False
+		except	Exception, e:
+			if len(unicode(e)) > 5:
+				indigo.server.log( u"decideMyLog in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+		return False
+
+	####-----------------  print to logfile or indigo log  ---------
+	def myLog(self,	 text="", mType="", errorType="", showDate=True, destination=""):
+		   
+
+		try:
+			if	self.logFileActive =="standard" or destination.find("standard") >-1:
+				if errorType == u"smallErr":
+					self.indiLOG.error(u"------------------------------------------------------------------------------")
+					self.indiLOG.error(text)
+					self.indiLOG.error(u"------------------------------------------------------------------------------")
+
+				elif errorType == u"bigErr":
+					self.indiLOG.error(u"==================================================================================")
+					self.indiLOG.error(text)
+					self.indiLOG.error(u"==================================================================================")
+
+				elif mType == "":
+					indigo.server.log(text)
+				else:
+					indigo.server.log(text, type=mType)
+
+
+			if	self.logFileActive !="standard":
+
+				ts =""
+				try:
+					if len(self.logFile) < 3: return # not properly defined
+					f =	 open(self.logFile,"a")
+				except	Exception, e:
+					indigo.server.log(u"in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+					try:
+						f.close()
+					except:
+						pass
+					return
+
+				if errorType == u"smallErr":
+					if showDate: ts = datetime.datetime.now().strftime(u"%H:%M:%S")
+					f.write(u"----------------------------------------------------------------------------------\n")
+					f.write((ts+u" ".ljust(12)+u"-"+text+u"\n").encode(u"utf8"))
+					f.write(u"----------------------------------------------------------------------------------\n")
+					f.close()
+					return
+
+				if errorType == u"bigErr":
+					if showDate: ts = datetime.datetime.now().strftime(u"%H:%M:%S")
+					ts = datetime.datetime.now().strftime(u"%H:%M:%S")
+					f.write(u"==================================================================================\n")
+					f.write((ts+u" "+u" ".ljust(12)+u"-"+text+u"\n").encode(u"utf8"))
+					f.write(u"==================================================================================\n")
+					f.close()
+					return
+
+				if showDate: ts = datetime.datetime.now().strftime(u"%H:%M:%S")
+				if mType == u"":
+					f.write((ts+u" " +u" ".ljust(25)  +u"-" + text + u"\n").encode("utf8"))
+				else:
+					f.write((ts+u" " +mType.ljust(25) +u"-" + text + u"\n").encode("utf8"))
+				### print calling function 
+				#f.write(u"_getframe:   1:" +sys._getframe(1).f_code.co_name+"   called from:"+sys._getframe(2).f_code.co_name+" @ line# %d"%(sys._getframe(1).f_lineno) ) # +"    trace# "+unicode(sys._getframe(1).f_trace)+"\n" )
+				f.close()
+				return
+
+
+		except	Exception, e:
+			if len(unicode(e)) > 5:
+				self.indiLOG.critical(u"myLog in Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+				indigo.server.log(text)
+				try: f.close()
+				except: pass
+
+
+
+##################################################################################################################
+####-----------------  valiable formatter for differnt log levels ---------
+# call with: 
+# formatter = LevelFormatter(fmt='<default log format>', level_fmts={logging.INFO: '<format string for info>'})
+# handler.setFormatter(formatter)
+class LevelFormatter(logging.Formatter):
+	def __init__(self, fmt=None, datefmt=None, level_fmts={}, level_date={}):
+		self._level_formatters = {}
+		self._level_date_format = {}
+		for level, format in level_fmts.items():
+			# Could optionally support level names too
+			self._level_formatters[level] = logging.Formatter(fmt=format, datefmt=level_date[level])
+		# self._fmt will be the default format
+		super(LevelFormatter, self).__init__(fmt=fmt, datefmt=datefmt)
+
+	def format(self, record):
+		if record.levelno in self._level_formatters:
+			return self._level_formatters[record.levelno].format(record)
+
+		return super(LevelFormatter, self).format(record)
+
+
+
+

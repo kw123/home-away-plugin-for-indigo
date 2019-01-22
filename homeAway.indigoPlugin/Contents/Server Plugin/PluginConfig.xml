@@ -30,11 +30,10 @@
     <Field    id="debugEVENTS"      type="checkbox"  defaultValue="false"   > <Label>... (3) process EVENTS:</Label>  </Field>
     <Field    id="debugDOORS"       type="checkbox"  defaultValue="false"   > <Label>... (4) DOOR devices:</Label>  </Field>
     <Field    id="debugall"         type="checkbox"  defaultValue="false"   > <Label>... (10) all of the above = everything:</Label>  </Field>
-    <Field    id="logFilePath"      type="menu"      defaultValue="no"      > <Label> send logs to ..:</Label>
+    <Field    id="logFileActive2"      type="menu"      defaultValue="no"      > <Label> send logs to ..:</Label>
         <List>
             <Option value="no"       > no special events logfile, std indigo logfile</Option>
-            <Option value="user"     > ~/indigo/events/homeAway.log                    </Option>
-            <Option value="indigo"   > .. Perceptive Automation/Indigo 7/Logs/com.karlwachs.events/homeAway.log </Option>
+            <Option value="indigo"   > .. Perceptive Automation/Indigo x.x/Logs/com.karlwachs.events/homeAway.log </Option>
         </List>
     </Field>
 

@@ -1,0 +1,8 @@
+Added features / changes in v7.2.10 @ 2019-01-21:  
+===================================================
+
+1. added check for inclomplete event definitions
+
+2. change to std logging
+
+3. moved all files to indigo server directory
