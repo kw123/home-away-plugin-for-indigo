@@ -1,6 +1,12 @@
 Added features / changes in v7.2.13 @ 2019-01-21:  
 ===================================================
 
+1. fixed: The following field ID has an invalid visibleBinding identifier: selectExistingSensor 
+
+
+Added features / changes in v7.2.13 @ 2019-01-21:  
+===================================================
+
 1. added check for incomplete event definitions
 
 2. change to std logging

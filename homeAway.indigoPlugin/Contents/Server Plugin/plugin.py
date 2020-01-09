@@ -15,7 +15,6 @@ import pwd
 import time
 import Queue
 import random
-import versionCheck.versionCheck as VS
 import plistlib
 
 import threading
@@ -1146,7 +1145,7 @@ This option allows to have the sensor reset its state to away (for home events a
 
 		except  Exception, e:
 				if len(unicode(e)) > 5:
-					indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+					indigo.server.log(u"Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		################   ------- here the loop  ends    --------------
 
 		self.pluginState   = "stop"
@@ -1172,7 +1171,10 @@ This option allows to have the sensor reset its state to away (for home events a
 		try:
 			for DEVICEid in self.SENSORS:
 				dd = self.splitDev(DEVICEid)
-				dev = indigo.devices[int(dd[0])]
+				try: dev = indigo.devices[int(dd[0])]
+				except  Exception, e:
+					indigo.server.log(u"Line {} has error={} please remove device from SENSORS\nSENSORS defined: {}".format(sys.exc_traceback.tb_lineno, e, self.SENSORS) )
+					continue
 				lastChangedDT = dev.lastChanged
 				lastChanged = time.mktime(lastChangedDT.timetuple())
 				newST = dev.states[dd[1]]
@@ -1198,7 +1200,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			if update: self.saveSENSORS()
 		except  Exception, e:
 				if len(unicode(e)) > 5:
-					indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e)+"\n" +unicode(self.SENSORS) )
+					indigo.server.log(u"Line {} has error={}\nSENSORS defined: {}".format(sys.exc_traceback.tb_lineno, e, self.SENSORS) )
 		return 
 
 
@@ -1245,7 +1247,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			if update: self.saveDOORS()
 		except  Exception, e:
 				if len(unicode(e)) > 5:
-					indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+					indigo.server.log(u"Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return 
 
 
@@ -1385,7 +1387,7 @@ This option allows to have the sensor reset its state to away (for home events a
 
 		except  Exception, e:
 			if len(unicode(e)) > 5:
-				indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+				indigo.server.log(u"Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return 
 
 	def splitDev(self,DEVICEid):
@@ -2043,7 +2045,7 @@ This option allows to have the sensor reset its state to away (for home events a
 
 		except  Exception, e:
 			if len(unicode(e)) > 5:
-				indigo.server.log(u"Line '%s' has error='%s'" % (sys.exc_traceback.tb_lineno, e))
+				indigo.server.log(u"Line {} has error={}".format(sys.exc_traceback.tb_lineno, e))
 		return devicesM, update
 
 
