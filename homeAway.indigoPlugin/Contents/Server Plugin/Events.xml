@@ -426,6 +426,14 @@
                 <Label>== Select  sensors that comprise the Event:</Label>
             </Field>
 
+            <Field     id="newOrExistingSensor" type="menu" defaultValue="add the  sensors here you like to use in this event, can be 1 or more. they all have to be up/down for allHomme/allAway condition" >
+                <Label>Select  sensors in Event:</Label>
+                <List>
+                    <Option value="new"      >add new </Option>
+                    <Option value="delete"   >delete </Option>
+                </List>
+            </Field>
+
             <Field     id="selectExistingSensor" type="menu" defaultValue="" visibleBindingId="newOrExistingSensor" visibleBindingValue="existing,delete">
                 <Label>Select  sensors in Event:</Label>
                 <List class="self" filter="existing" method="filterSensorsEvent"  dynamicReload="true"/>
