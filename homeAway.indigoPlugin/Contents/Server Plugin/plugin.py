@@ -100,6 +100,33 @@ class Plugin(indigo.PluginBase):
 						logging.ERROR:       "%Y-%m-%d %H:%M:%S",
 						logging.CRITICAL:    "%Y-%m-%d %H:%M:%S" }
 		formatter = LevelFormatter(fmt="%(msg)s", datefmt="%Y-%m-%d %H:%M:%S", level_fmts=formats, level_date=date_Format)
+
+		self.plugin_file_handler.setFormatter(formatter)
+		self.indiLOG = logging.getLogger("Plugin")  
+		self.indiLOG.setLevel(logging.THREADDEBUG)
+
+		self.indigo_log_handler.setLevel(logging.INFO)
+
+		self.indiLOG.log(20,"=========================   initializing   ==============================================")
+
+		indigo.server.log(  u"path To files:          ==================")
+		indigo.server.log(  u"indigo                  {}".format(self.indigoRootPath))
+		indigo.server.log(  u"installFolder           {}".format(self.indigoPath))
+		indigo.server.log(  u"plugin.py               {}".format(self.pathToPlugin))
+		indigo.server.log(  u"Plugin params           {}".format(self.indigoPreferencesPluginDir))
+
+		self.indiLOG.log( 0, "!!!!INFO ONLY!!!!  logger  enabled for   0             !!!!INFO ONLY!!!!")
+		self.indiLOG.log( 5, "!!!!INFO ONLY!!!!  logger  enabled for   THREADDEBUG   !!!!INFO ONLY!!!!")
+		self.indiLOG.log(10, "!!!!INFO ONLY!!!!  logger  enabled for   DEBUG         !!!!INFO ONLY!!!!")
+		self.indiLOG.log(20, "!!!!INFO ONLY!!!!  logger  enabled for   INFO          !!!!INFO ONLY!!!!")
+		self.indiLOG.log(30, "!!!!INFO ONLY!!!!  logger  enabled for   WARNING       !!!!INFO ONLY!!!!")
+		self.indiLOG.log(40, "!!!!INFO ONLY!!!!  logger  enabled for   ERROR         !!!!INFO ONLY!!!!")
+		self.indiLOG.log(50, "!!!!INFO ONLY!!!!  logger  enabled for   CRITICAL      !!!!INFO ONLY!!!!")
+
+		indigo.server.log(  u"check                   {}  <<<<    for detailed logging".format(self.PluginLogFile))
+		indigo.server.log(  u"Plugin short Name       {}".format(self.pluginShortName))
+		indigo.server.log(  u"my PID                  {}".format(self.myPID))	 
+		indigo.server.log(  u"set params for indigo V {}".format(self.indigoVersion))	 
 	
 		if not self.moveToIndigoPrefsDir(self.indigoPluginDirOld, self.indigoPreferencesPluginDir):
 				exit()
@@ -1265,10 +1292,10 @@ This option allows to have the sensor reset its state to away (for home events a
 
 		try:
 			if self.decideMyLog(u"RECEIVE") and False: 
-				self.indiLOG.log(40, unicode(MSG), mType="receiveDeviceChanged" )
+				self.myLog(text =  unicode(MSG), mType="receiveDeviceChanged" )
 			if "data" not in MSG: 
 				if self.decideMyLog(u"RECEIVE") : 
-					self.indiLOG.log(40, "bad data received, not data element in dict "+ unicode(MSG), mType="receiveDeviceChanged" )
+					self.myLog(text = "bad data received, not data element in dict "+ unicode(MSG), mType="receiveDeviceChanged" )
 				return
 				
 			data = MSG["data"]
@@ -1297,7 +1324,7 @@ This option allows to have the sensor reset its state to away (for home events a
 					save = ["","","","","","","","",""]
 
 					if self.enableEventTracking  or  self.decideMyLog(u"RECEIVE"):
-							self.indiLOG.log(40, "DEVICEid:accepted.. UP " +unicode(UP) +"  UPnew "+unicode(UPnew) +"  DOWNnew "+unicode(DOWNnew), mType="receiveDeviceChanged")
+							self.myLog(text = "DEVICEid:accepted.. UP " +unicode(UP) +"  UPnew "+unicode(UPnew) +"  DOWNnew "+unicode(DOWNnew), mType="receiveDeviceChanged")
 
 					if UP:
 						if UPnew:
@@ -1335,7 +1362,7 @@ This option allows to have the sensor reset its state to away (for home events a
 					if save != ["","","","","","","","",""]: self.saveSENSORS()
 					if self.enableEventTracking or  (self.decideMyLog(u"RECEIVE") and save != ["","","","","","","","",""] ):
 						dd = self.splitDev(DEVICEid)
-						self.indiLOG.log(40, (dd[0]+":"+dd[1]).ljust(17)+
+						self.myLog(text =  (dd[0]+":"+dd[1]).ljust(17)+
 					"; stateUP:"+self.SENSORS[DEVICEid]["up"]["state"].ljust(13)+
 					"; signRecUP:"+unicode(self.SENSORS[DEVICEid]["up"]["signalReceived"]).ljust(6)+
 					"; lChgUP:%6.1f"%(min(time.time()-self.SENSORS[DEVICEid]["up"]["lastChange"], 9999))+
@@ -1486,7 +1513,7 @@ This option allows to have the sensor reset its state to away (for home events a
 										props["sensorsMembers"] = json.dumps(devicesM)
 										save[1]= "DW"
 							if self.enableEventTracking  or  ( self.decideMyLog(u"EVENTS") and save != ["","","","","",""] ): 
-								self.indiLOG.log(40,""+
+								self.myLog(text = ""+
 									"DEVid:%s" %( DEVICEid.replace(":::","/").ljust(18) ) +
 									";  noDoors:%s" %(noDoors.ljust(5) ) +
 									";  ud:%s" %( ud[0:2] ) +
@@ -1587,7 +1614,7 @@ This option allows to have the sensor reset its state to away (for home events a
 						props["sensorsTrigger"]  = False
 						
 				if self.enableEventTracking  or  ( self.decideMyLog(u"EVENTS") and save != ["","","","","",""] ): 
-					self.indiLOG.log(40,""+
+					self.myLog(text = 
 					"trigTyp: "              +unicode( triggerType ).ljust(14)+
 					";  devTrig: "           +unicode( triggered )[0]+" -> "+unicode( props["sensorsTrigger"] )[0]+
 					";  allT:"               +unicode( oneAll == "all" and counter[homeAway] == len(devicesM) )[0]+
@@ -2012,8 +2039,7 @@ This option allows to have the sensor reset its state to away (for home events a
 			dd = self.splitDev(DEVICEid)
 			if DEVICEid not in self.SENSORS: 
 				if self.enableEventTracking  or  ( self.decideMyLog(u"EVENT") and update ) : 
-					self.indiLOG.log(40, (""+
-						"  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27))+
+					self.myLog(text = "  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27)+
 						"  not in DEVICES "+
 						"",     mType = "syncEventStatesToDeviceStates")
 				return devicesM, update
@@ -2037,8 +2063,8 @@ This option allows to have the sensor reset its state to away (for home events a
 					 update = True
 
 			if self.enableEventTracking  or  ( self.decideMyLog(u"EVENT") and update ) :
-				self.indiLOG.log(40, (""+
-					"  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27))+
+				self.myLog(text = ""+
+					"  devId: %s"  %(dd[0]+"/"+dd[1]).ljust(27)+
 					";  up-state: %s" %unicode(self.SENSORS[DEVICEid]["up"]["state"])+
 					";  do-state: %s" %unicode(self.SENSORS[DEVICEid]["down"]["state"])+
 					"",     mType = "syncEventStatesToDeviceStates")
